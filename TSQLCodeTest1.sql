@@ -1,1 +1,1 @@
-CONNECT localhost
+select @@SERVERNAME
