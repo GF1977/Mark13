@@ -1,1 +1,1 @@
-select @@SERVERNAME
+SELECT TOP 100 *   FROM [AW].[dbo].[FactInternetSales]
