@@ -1,0 +1,11 @@
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\bin\Debug\netcoreapp2.1\hello.deps.json
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\bin\Debug\netcoreapp2.1\hello.runtimeconfig.json
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\bin\Debug\netcoreapp2.1\hello.runtimeconfig.dev.json
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\bin\Debug\netcoreapp2.1\hello.dll
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\bin\Debug\netcoreapp2.1\hello.pdb
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\obj\Debug\netcoreapp2.1\hello.csprojAssemblyReference.cache
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\obj\Debug\netcoreapp2.1\hello.csproj.CoreCompileInputs.cache
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\obj\Debug\netcoreapp2.1\hello.AssemblyInfoInputs.cache
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\obj\Debug\netcoreapp2.1\hello.AssemblyInfo.cs
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\obj\Debug\netcoreapp2.1\hello.dll
+C:\WAYFAIR\GIT\ILIA\Pluralsight\hello\obj\Debug\netcoreapp2.1\hello.pdb
