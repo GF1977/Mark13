@@ -46,7 +46,7 @@ namespace WeatherConsole
 			/// </summary>
 			[DataMember(Name = "deg")]
 			public double WindDirection { get; set; }
-		}
+        }
 
 		[DataMember(Name = "clouds")]
 		public CloudsInfo Clouds { get; set; }

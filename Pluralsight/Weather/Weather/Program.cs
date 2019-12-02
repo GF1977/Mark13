@@ -10,6 +10,14 @@
             Run().Wait();
         }
 
+        public static string WindDirection(double degree)
+        {
+            
+            string[] direction = {"North", "North-East", "East", "South-East", "South", "South-West", "West", "North-West"};
+            int index = (int)(degree / 45);
+            return direction[index];
+        }
+
 		private static async Task Run()
 		{
             bool bContinue = true;
@@ -35,12 +43,17 @@
                     WriteLine("Failed to fetch weather information.");
                     return;
                 }
-                WriteLine($"\nTemp: {weather.Main?.Temperature}");
+                string direction = WindDirection(weather.Wind.WindDirection);
+                WriteLine($"\nCity: {weather.CityName}");
+                WriteLine($"Temp: {weather.Main?.Temperature}");
                 WriteLine($"Low: {weather.Main?.MinTemperature}");
                 WriteLine($"High: {weather.Main?.MaxTemperature}");
                 WriteLine($"Humidity: {weather.Main?.Humidity}%");
                 WriteLine($"Condition: {weather.FirstCondition?.Description}");
+                WriteLine($"Wind: {weather.Wind.WindSpeed} meter/sec, {direction}");
+                
             }
 		}
+
 	}
 }
