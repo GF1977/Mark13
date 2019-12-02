@@ -21,7 +21,6 @@
             using (StreamReader reader = new StreamReader(fileStream))
             {
                 string line = reader.ReadLine();
-
                 return line;
             }
         }
