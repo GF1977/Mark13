@@ -9,20 +9,21 @@
 
     public class OpenWeatherMapClient
 	{
-        public  string AppId = ReadApiKey();
+        private readonly string _AppId ;
 		private readonly string _Units;
 		private readonly HttpClient _Client;
 		private const string ApiRoot = "http://api.openweathermap.org/data/2.5";
+        private const string _File = "./WeatherAPI.key";
 
 
-        static string ReadApiKey(string api_file = "./WeatherAPI.key")
+        static string ReadApiKey(string api_file)
         {
-            FileStream fileStream = new FileStream(api_file, FileMode.Open);
-            using (StreamReader reader = new StreamReader(fileStream))
-            {
-                string line = reader.ReadLine();
-                return line;
-            }
+                FileStream fileStream = new FileStream(api_file, FileMode.Open);
+                using (StreamReader reader = new StreamReader(fileStream))
+                {
+                    string line = reader.ReadLine();
+                    return line;
+                }
         }
 
 
@@ -30,12 +31,13 @@
 		{
 			_Units = units;
 			_Client = new HttpClient();
-		}
+            _AppId = ReadApiKey(_File);
+        }
 
 		public async Task<CurrentWeather> GetCurrentWeatherByCity(string city)
 		{
 			// note: no error handling
-			var currentWeatherApiUrl = $"{ApiRoot}/weather?q={city}&appid={AppId}&units={_Units}";
+			var currentWeatherApiUrl = $"{ApiRoot}/weather?q={city}&appid={_AppId}&units={_Units}";
 			var response = await _Client.GetAsync(currentWeatherApiUrl);
 			var responseString = await response.Content.ReadAsStringAsync();
 			Console.WriteLine("\nJSON response:");

@@ -12,20 +12,35 @@
 
 		private static async Task Run()
 		{
-			var city = "Berlin, DE";
-			var client = new OpenWeatherMapClient();
-			WriteLine($"Fetching weather for {city}");
-			var weather = await client.GetCurrentWeatherByCity(city);
-			if (weather == null)
-			{
-				WriteLine("Failed to fetch weather information.");
-				return;
-			}
-			WriteLine($"\nTemp: {weather.Main?.Temperature}");
-			WriteLine($"Low: {weather.Main?.MinTemperature}");
-			WriteLine($"High: {weather.Main?.MaxTemperature}");
-			WriteLine($"Humidity: {weather.Main?.Humidity}%");
-			WriteLine($"Condition: {weather.FirstCondition?.Description}");
+            bool bContinue = true;
+            var city = "Berlin, DE";
+            OpenWeatherMapClient client = null;
+            try
+            {
+                 client = new OpenWeatherMapClient();
+            }
+            catch (System.Exception)
+            {
+                WriteLine("Can't create OpenWeatherMapClient");
+                bContinue = false;
+                //throw;
+            }
+
+            if (bContinue)
+            {
+                WriteLine($"Fetching weather for {city}");
+                var weather = await client.GetCurrentWeatherByCity(city);
+                if (weather == null)
+                {
+                    WriteLine("Failed to fetch weather information.");
+                    return;
+                }
+                WriteLine($"\nTemp: {weather.Main?.Temperature}");
+                WriteLine($"Low: {weather.Main?.MinTemperature}");
+                WriteLine($"High: {weather.Main?.MaxTemperature}");
+                WriteLine($"Humidity: {weather.Main?.Humidity}%");
+                WriteLine($"Condition: {weather.FirstCondition?.Description}");
+            }
 		}
 	}
 }
