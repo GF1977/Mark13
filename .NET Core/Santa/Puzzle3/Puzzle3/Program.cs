@@ -26,14 +26,6 @@ namespace Puzzle3
 
             W1_full_path = PullWire(ref W1_path_X, ref W1_path_Y, wire_1);
 
-            W1_path_Y.Sort();
-            W1_path_X.Sort();
-            Console.WriteLine("Max Top = {0}; Max Down = {1}; Max Left = {2}; Max Right = {3}",
-                W1_path_Y[W1_path_Y.Count - 1],
-                W1_path_Y[0],
-                W1_path_X[0],
-                W1_path_X[W1_path_X.Count - 1] );
-
 
             List<int> W2_path_X = new List<int>();
             List<int> W2_path_Y = new List<int>();
@@ -44,19 +36,26 @@ namespace Puzzle3
 
             W2_full_path = PullWire(ref W2_path_X, ref W2_path_Y, wire_2);
 
-            W2_path_Y.Sort();
-            W2_path_X.Sort();
-            Console.WriteLine("Max Top = {0}; Max Down = {1}; Max Left = {2}; Max Right = {3}",
-                W2_path_Y[W2_path_Y.Count - 1],
-                W2_path_Y[0],
-                W2_path_X[0],
-                W2_path_X[W2_path_X.Count - 1]);
-
 
 
             List<string> Intersections = W1_full_path.Intersect(W2_full_path).ToList();
+
+            int i = 0;
+            int min_steps = W1_full_path.IndexOf(Intersections[i]) + W2_full_path.IndexOf(Intersections[i])+2;
+            while (i < Intersections.Count)
+            {
+                int steps = W1_full_path.IndexOf(Intersections[i]) + W2_full_path.IndexOf(Intersections[i])+2;
+                if (steps < min_steps)
+                    min_steps = steps;
+                Console.WriteLine("intersections = {0}; Distance (Manhattan) = {1};  Steps = {2}", Intersections[i], ManhattanDistance(Intersections[i]),steps);
+                i++;
+            }
+
             
-            int i  = 1;
+
+
+
+            i  = 1;
             int minDist = ManhattanDistance(Intersections[0]);
             while (i<Intersections.Count)
             {
@@ -65,7 +64,7 @@ namespace Puzzle3
                 i++;
             }
 
-            Console.WriteLine("intersections = {0}; Min distance (Manhattan) = {1}", Intersections.Count, minDist);
+            Console.WriteLine("intersections = {0}; Min distance (Manhattan) = {1}; Min steps = {2}", Intersections.Count, minDist, min_steps);
 
 
 
