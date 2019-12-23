@@ -10,77 +10,94 @@ namespace Puzzle8
 {
     class Program
     {
-        class SIP
-        {
-            private struct strSIP
-            {
-                public int LayerNumber;
-                public int[] LayerData;
-            }
-
-            private List<strSIP> theSIP = new List<strSIP>();
-
-            public void SetDataInLayer(int nLayer, int[] RawData)
-            {
-                strSIP tempSIP;
-                tempSIP.LayerData = new int[150];
-                RawData.CopyTo(tempSIP.LayerData,0);
-                tempSIP.LayerNumber = nLayer;
-                theSIP.Add(tempSIP);
-            }
-
-            public int GetNumberOfDigints(int nLayer, int Digit)
-            {
-                int res = 0;
-                for (int pos = 0; pos < 150; pos++)
-                        if (theSIP[nLayer].LayerData[pos] == Digit)
-                            res++;
-                return res;
-            }
-
-            public int GetLayersCount()
-            {
-                return theSIP.Count;
-            }
-        }
-
         static void Main(string[] args)
         {
             StreamReader file = new StreamReader(@".\data.txt");
             string line = file.ReadToEnd();
-            char[] cRawData = line.ToCharArray();
-            int[] tempData = new int[150];
-            int nLayer = 0;
-            SIP password = new SIP();
-            while(nLayer < line.Length/150)
-            {
-                for (int pos = 0; pos < 150; pos++)
-                    {
-                        char pixel = cRawData[nLayer*pos+pos];
-                        tempData[pos] = int.Parse(pixel.ToString());
-                    }
-                password.SetDataInLayer(nLayer, tempData);
-                nLayer++;
-
-            }
-            int minZeros = password.GetNumberOfDigints(0,0);
-            int minZerosLayer = 0;
-            for(int i = 1;i < password.GetLayersCount();i++)
-            {
-                int z = password.GetNumberOfDigints(i, 0);
-                if (minZeros > z)
-                {
-                    minZeros = z;
-                    minZerosLayer = i;
-                }
-                Console.WriteLine("Layer: {0}     0: {1}", i, password.GetNumberOfDigints(minZerosLayer, 0));
-                Console.WriteLine("Layer: {0}     1: {1}", i, password.GetNumberOfDigints(minZerosLayer, 1));
-                Console.WriteLine("Layer: {0}     2: {1}", i, password.GetNumberOfDigints(minZerosLayer, 2));
-            }
-
-            int res = password.GetNumberOfDigints(minZerosLayer, 1) * password.GetNumberOfDigints(minZerosLayer, 2);
-            Console.WriteLine("----------------------------");
-            Console.WriteLine("Layer: {0}     Res: {1}", minZerosLayer,res);
+            //PartOne(line);
+            PartTwo(line);
         }
+
+        static void PartTwo(string line)
+        {
+            char[] pixels = line.ToCharArray();
+            char[] pixelFlat = new char[150];
+
+           for (int i = 0; i < 150; i++)
+           {
+                int nLayer = 0;
+                while (nLayer < line.Length)
+                {
+                    int pix = int.Parse(pixels[nLayer + i].ToString());
+                    if (pix == 0)
+                    {
+                        pixelFlat[i] = ' ';
+                        break;
+                    }
+                    if (pix == 1)
+                    {
+                        pixelFlat[i] = '*';
+                        break;
+                    }
+                    nLayer+=150;
+                }
+            }
+
+            for (int c = 0; c < 6; c++)
+            {
+                string lineToPrint = "";
+                for (int r = 0; r < 25; r++)
+                    lineToPrint += pixelFlat[c * 25 + r];
+                Console.WriteLine(lineToPrint);
+            }
+
+        }
+
+        static void PartOne(string line)
+        {
+            int nLayer = 0;
+            int res = 0;
+            int minZeros = 150;
+            while (nLayer < line.Length / 150)
+            {
+                int zeroes = 0, ones = 0, twos = 0;
+                char[] pixels = line.ToCharArray(nLayer * 150, 150);
+                for (int i = 0; i < 150; i++)
+                {
+                    switch (int.Parse(pixels[i].ToString()))
+                    {
+                        case 0:
+                            zeroes++;
+                            break;
+
+                        case 1:
+                            ones++;
+                            break;
+
+                        case 2:
+                            twos++;
+                            break;
+
+                        default:
+                            Console.WriteLine("Error");
+                            break;
+                    }
+
+                }
+                if (zeroes < minZeros)
+                {
+                    minZeros = zeroes;
+                    res = ones * twos;
+                }
+                Console.WriteLine("Layer: {0}     0: {1}", nLayer, zeroes);
+                Console.WriteLine("Layer: {0}     1: {1}", nLayer, ones);
+                Console.WriteLine("Layer: {0}     2: {1}", nLayer, twos);
+                nLayer++;
+            }
+
+            Console.WriteLine("----------------------------");
+            Console.WriteLine("Res: {0}", res);
+        }
+
     }
 }
