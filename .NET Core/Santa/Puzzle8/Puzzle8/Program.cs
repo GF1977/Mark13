@@ -36,7 +36,7 @@ namespace Puzzle8
                     }
                     if (pix == 1)
                     {
-                        pixelFlat[i] = '*';
+                        pixelFlat[i] = '@';
                         break;
                     }
                     nLayer+=150;
