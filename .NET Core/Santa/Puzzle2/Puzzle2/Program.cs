@@ -1,7 +1,7 @@
-﻿using System;
+﻿using MyClasses;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using MyClasses;
 
 
 // https://adventofcode.com/2019/day/2
@@ -13,9 +13,9 @@ namespace Puzzle2
         static void Main(string[] args)
         {
             Int64 StartValue = 1;
-            StreamReader    file    = new StreamReader(@".\data.txt");
-            string          line    = file.ReadLine();
-            string[]        words   = line.Split(',');
+            StreamReader file = new StreamReader(@".\data.txt");
+            string line = file.ReadLine();
+            string[] words = line.Split(',');
 
             List<Int64> commands_vanile = new List<Int64>();
             foreach (string word in words)
@@ -26,14 +26,14 @@ namespace Puzzle2
 
             // Part One
             commands[1] = 12;
-            commands[2] =  2;
+            commands[2] = 2;
 
             TheCommand.RunMyProgramm(commands, StartValue);
             Console.WriteLine("1st part Puzzle: {0}", commands[0]);
 
             // Part two
-            for (int n1 = 0; n1 < 100; n1++ )
-                for(int n2 = 0; n2 < 100; n2++)
+            for (int n1 = 0; n1 < 100; n1++)
+                for (int n2 = 0; n2 < 100; n2++)
                 {
                     commands = new List<Int64>(commands_vanile);
                     commands[1] = n1;
@@ -41,7 +41,7 @@ namespace Puzzle2
                     TheCommand.RunMyProgramm(commands, StartValue);
                     if (commands[0] == 19690720)
                     {
-                        Console.WriteLine("2nd part Puzzle: {0}", 100*n1+n2);
+                        Console.WriteLine("2nd part Puzzle: {0}", 100 * n1 + n2);
                         break;
                     }
 

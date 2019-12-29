@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MyClasses
 {
@@ -53,7 +52,7 @@ namespace MyClasses
 
                 if (GetArgNumber(command) >= 3)
                 {
-                    if (word.ToString()[2] == '0') // position mode
+                    if (word.ToString()[2] == '0') // position mode (3 rd argument has address to write, it is always absolute or relative address)
                         ArgThree.argMode = 1;
                     if (word.ToString()[2] == '1') // absolute mode
                         ArgThree.argMode = 1;
@@ -103,13 +102,11 @@ namespace MyClasses
         //Opcode 9: adjusts the relative base
         public void AdjustRelativeBaseOffset()
         {
-            // Console.WriteLine("Write  relative_base_offset {0} -> {1}", relative_base_offset, relative_base_offset + ArgOne.argValue);
             relative_base_offset += ArgOne.argValue;
-
         }
 
-        public Int64 GetCommand() { return command; }
-        public Int64 GetStep() { return Step; }
+        public Int64 GetCommand()   { return command; }
+        public Int64 GetStep()      { return Step; }
         public Int64 ReadMemory(Int64 mAddress, Int64 mode, ref List<Int64> words)
         {
             Int64 res = -1;
@@ -120,18 +117,10 @@ namespace MyClasses
         }
         public void WriteMemory(Int64 mAddress, Int64 mode, Int64 mvalue, ref List<Int64> words)
         {
-
             if (mode == 0 || mode == 1)
-            {
-                //Console.WriteLine("Write {0}    To:[{1}]        Was: {2}", mvalue, (int)mAddress, words[(int)mAddress]);
                 words[(int)mAddress] = mvalue;
-
-            }
             if (mode == 2)
-            {
-                //Console.WriteLine("Write {0}    To: [{1}]       Was: {2}", mvalue, (int)(mAddress + relative_base_offset), words[(int)(mAddress + relative_base_offset)]);
                 words[(int)(mAddress + relative_base_offset)] = mvalue;
-            }
         }
         public void Add(List<Int64> words)
         {
@@ -150,7 +139,7 @@ namespace MyClasses
             Console.WriteLine(ArgOne.argValue);
             Int64 res;
             if (ArgOne.argMode == 2)
-                res = ArgOne.argValue;// + relative_base_offset;
+                res = ArgOne.argValue;
             else
                 res = ArgOne.argValue;
             return res;
