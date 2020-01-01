@@ -1,16 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using MyClasses;
 
+    
 namespace Puzzle11
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var x = Math.PI;
-            Console.WriteLine($"Pi {x:N10}");
+            StreamReader file = new StreamReader(@".\data.txt");
+            string line = file.ReadLine();
+            string[] words = line.Split(',');
 
-            string s = String.Format("It is now {0:D} at {0:t}", DateTime.Now);
-            Console.WriteLine(s);
+            List<Int64> commands_vanile = new List<Int64>();
+
+            foreach (string word in words)
+            {
+                commands_vanile.Add(Int64.Parse(word));
+            }
+            List<Int64> commands = new List<Int64>(commands_vanile);
+
+
+            Int64 StartValue = 0;
+            TheCommand.RunMyProgramm(commands, StartValue, true);
+
         }
     }
 }
