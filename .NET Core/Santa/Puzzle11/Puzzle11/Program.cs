@@ -20,11 +20,16 @@ namespace Puzzle11
             {
                 commands_vanile.Add(Int64.Parse(word));
             }
+
+            for (int i = 0; i < 1000; i++)
+                commands_vanile.Add(0);
+
+
             List<Int64> commands = new List<Int64>(commands_vanile);
 
 
             Int64 StartValue = 0;
-            TheCommand.RunMyProgramm(commands, StartValue, true);
+            TheCommand.RunMyProgramm(commands, StartValue, false);
 
         }
     }
