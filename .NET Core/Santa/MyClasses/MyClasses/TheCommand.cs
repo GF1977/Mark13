@@ -105,8 +105,8 @@ namespace MyClasses
             relative_base_offset += ArgOne.argValue;
         }
 
-        private Int64 GetCommand()   { return command; }
-        private Int64 GetStep()      { return Step; }
+        private Int64 GetCommand() { return command; }
+        private Int64 GetStep() { return Step; }
         private Int64 ReadMemory(Int64 mAddress, Int64 mode, ref List<Int64> words)
         {
             Int64 res = -1;
@@ -197,17 +197,17 @@ namespace MyClasses
         {
             string theRes = "";
             switch (GetCommand())
-            {   
-                case 1: theRes = "Add X,Y -> Z";        break;
-                case 2: theRes = "Mult X,Y -> Z";       break;
-                case 3: theRes = "Input X";             break;
-                case 4: theRes = "Output X";            break;
-                case 5: theRes = "Jump if true";        break;
-                case 6: theRes = "Jump if false";       break;
-                case 7: theRes = "Less than";           break;
-                case 8: theRes = "Equal";               break;
-                case 9: theRes = "Realteive base +X";   break;
-                case 99:theRes = "STOP";                break;
+            {
+                case 1: theRes = "Add X,Y -> Z"; break;
+                case 2: theRes = "Mult X,Y -> Z"; break;
+                case 3: theRes = "Input X"; break;
+                case 4: theRes = "Output X"; break;
+                case 5: theRes = "Jump if true"; break;
+                case 6: theRes = "Jump if false"; break;
+                case 7: theRes = "Less than"; break;
+                case 8: theRes = "Equal"; break;
+                case 9: theRes = "Realteive base +X"; break;
+                case 99: theRes = "STOP"; break;
 
                 default:
                     theRes = "----WRONG COMMAND WORD-----";
@@ -217,77 +217,82 @@ namespace MyClasses
             return theRes;
         }
 
-        public static Int64[] RunMyProgramm(List<Int64> commands2, Int64 InputValue , bool bDebug = false)
+        public static Int64[] RunMyProgramm(List<Int64> commands, Int64 InputValue, bool bDebug = false)
         {
             Int64 nStep = 0;
-            bool bError = false;
             Int64[] Output = { -1, nStep }; // Value , Pointer
-            while (nStep <= commands2.Count && !bError)
+            do
             {
-                TheCommand myCommand = new TheCommand(nStep, ref commands2);
+                TheCommand myCommand = new TheCommand(nStep, ref commands);
                 if (bDebug)
                     myCommand.Debug(nStep);
 
-                Int64 stepIncrease = myCommand.GetStep();
-                switch (myCommand.GetCommand())
+                Output = myCommand.ExecuteOneCommand(nStep, InputValue, commands);
+                nStep = Output[1];
+            }
+            while (nStep <= commands.Count && nStep > 0);
+            return Output;
+        }
+
+        private Int64[] ExecuteOneCommand(Int64 nStep, Int64 InputValue, List<Int64> commands)
+        {
+                Int64[] Output = { 0, 0 };
+                Int64 stepIncrease = this.GetStep();
+                switch (this.GetCommand())
                 {
                     case 1: // Add
-                        myCommand.Add(commands2);
+                        this.Add(commands);
                         break;
 
                     case 2: // Multi
-                        myCommand.Multi(commands2);
+                        this.Multi(commands);
                         break;
 
                     case 3: // Input
-                        myCommand.Input(InputValue, commands2);
+                        this.Input(InputValue, commands);
                         break;
 
                     case 4: // Output
-                        Output[0] = myCommand.Output();
+                        Output[0] = this.Output();
                         //bError = true;
                         break;
 
                     case 5: //Opcode 5: jump-if-true:
-                        nStep = myCommand.JumpIfTrue(nStep);
+                        nStep = this.JumpIfTrue(nStep);
                         stepIncrease = 0;
                         break;
 
                     case 6: //Opcode 6: jump-if-false
-                        nStep = myCommand.JumpIfFalse(nStep);
+                        nStep = this.JumpIfFalse(nStep);
                         stepIncrease = 0;
                         break;
 
                     case 7: //Opcode 7: less than
-                        myCommand.LessThan(commands2);
+                        this.LessThan(commands);
                         break;
 
                     case 8: //Opcode 8: equal
-                        myCommand.Equals(commands2);
+                        this.Equals(commands);
                         break;
 
                     case 9: //Opcode 9: relative_base_offset adjustement
-                        myCommand.AdjustRelativeBaseOffset();
+                        this.AdjustRelativeBaseOffset();
                         break;
 
 
                     case 99: // Halt
                         //Console.WriteLine("Case 99: Stop");
                         nStep = 0;
-                        bError = true;
+                        stepIncrease = 0;
                         break;
 
                     default:
                         Console.WriteLine("Error");
-                        bError = true;
                         break;
                 }
-                nStep += stepIncrease;
-            }
-            Output[1] = nStep;
+            Output[1] = nStep + stepIncrease;
             return Output;
         }
-
 
     }
 }
