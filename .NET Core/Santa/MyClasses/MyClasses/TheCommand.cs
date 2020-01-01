@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace MyClasses
 {
@@ -52,7 +53,7 @@ namespace MyClasses
 
                 if (GetArgNumber(command) >= 3)
                 {
-                    if (word.ToString()[2] == '0') // position mode (3 rd argument has address to write, it is always absolute or relative address)
+                    if (word.ToString()[2] == '0') // position mode
                         ArgThree.argMode = 1;
                     if (word.ToString()[2] == '1') // absolute mode
                         ArgThree.argMode = 1;
@@ -102,11 +103,13 @@ namespace MyClasses
         //Opcode 9: adjusts the relative base
         public void AdjustRelativeBaseOffset()
         {
+            // Console.WriteLine("Write  relative_base_offset {0} -> {1}", relative_base_offset, relative_base_offset + ArgOne.argValue);
             relative_base_offset += ArgOne.argValue;
+
         }
 
-        public Int64 GetCommand()   { return command; }
-        public Int64 GetStep()      { return Step; }
+        public Int64 GetCommand() { return command; }
+        public Int64 GetStep() { return Step; }
         public Int64 ReadMemory(Int64 mAddress, Int64 mode, ref List<Int64> words)
         {
             Int64 res = -1;
@@ -117,10 +120,18 @@ namespace MyClasses
         }
         public void WriteMemory(Int64 mAddress, Int64 mode, Int64 mvalue, ref List<Int64> words)
         {
+
             if (mode == 0 || mode == 1)
+            {
+                //Console.WriteLine("Write {0}    To:[{1}]        Was: {2}", mvalue, (int)mAddress, words[(int)mAddress]);
                 words[(int)mAddress] = mvalue;
+
+            }
             if (mode == 2)
+            {
+                //Console.WriteLine("Write {0}    To: [{1}]       Was: {2}", mvalue, (int)(mAddress + relative_base_offset), words[(int)(mAddress + relative_base_offset)]);
                 words[(int)(mAddress + relative_base_offset)] = mvalue;
+            }
         }
         public void Add(List<Int64> words)
         {
@@ -139,7 +150,7 @@ namespace MyClasses
             Console.WriteLine(ArgOne.argValue);
             Int64 res;
             if (ArgOne.argMode == 2)
-                res = ArgOne.argValue;
+                res = ArgOne.argValue;// + relative_base_offset;
             else
                 res = ArgOne.argValue;
             return res;
@@ -192,76 +203,6 @@ namespace MyClasses
             if (GetArgNumber(GetCommand()) >= 3)
                 Console.WriteLine("Argument 3:  [{0}]{1}", GetArgMode(2), GetArgValue(2));
             Console.WriteLine("---------------------------");
-        }
-
-        public static Int64[] RunMyProgramm(List<Int64> commands2, Int64 InputValue)
-        {
-            Int64 nStep = 0;
-            bool bError = false;
-            Int64[] Output = { -1, nStep }; // Value , Pointer
-            while (nStep <= commands2.Count && !bError)
-            {
-                TheCommand myCommand = new TheCommand(nStep, ref commands2);
-                // myCommand.Debug();
-
-                Int64 stepIncrease = myCommand.GetStep();
-                switch (myCommand.GetCommand())
-                {
-                    case 1: // Add
-                        myCommand.Add(commands2);
-                        break;
-
-                    case 2: // Multi
-                        myCommand.Multi(commands2);
-                        break;
-
-                    case 3: // Input
-                        myCommand.Input(InputValue, commands2);
-                        break;
-
-                    case 4: // Output
-                        Output[0] = myCommand.Output();
-                        //bError = true;
-                        break;
-
-                    case 5: //Opcode 5: jump-if-true:
-                        nStep = myCommand.JumpIfTrue(nStep);
-                        stepIncrease = 0;
-                        break;
-
-                    case 6: //Opcode 6: jump-if-false
-                        nStep = myCommand.JumpIfFalse(nStep);
-                        stepIncrease = 0;
-                        break;
-
-                    case 7: //Opcode 7: less than
-                        myCommand.LessThan(commands2);
-                        break;
-
-                    case 8: //Opcode 8: equal
-                        myCommand.Equals(commands2);
-                        break;
-
-                    case 9: //Opcode 9: relative_base_offset adjustement
-                        myCommand.AdjustRelativeBaseOffset();
-                        break;
-
-
-                    case 99: // Halt
-                        //Console.WriteLine("Case 99: Stop");
-                        nStep = 0;
-                        bError = true;
-                        break;
-
-                    default:
-                        Console.WriteLine("Error");
-                        bError = true;
-                        break;
-                }
-                nStep += stepIncrease;
-            }
-            Output[1] = nStep;
-            return Output;
         }
 
 
