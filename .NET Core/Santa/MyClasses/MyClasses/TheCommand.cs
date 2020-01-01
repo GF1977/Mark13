@@ -8,7 +8,7 @@ namespace MyClasses
         private static Int64 command;
         private static Int64 Step;
         private static Int64 relative_base_offset = 0;
-        struct myArgument
+        private struct myArgument
         {
             public Int64 argValue;
             public Int64 argMode;
@@ -17,7 +17,7 @@ namespace MyClasses
         private static myArgument ArgOne;
         private static myArgument ArgTwo;
         private static myArgument ArgThree;
-        public TheCommand(Int64 nStep, ref List<Int64> words)
+        private TheCommand(Int64 nStep, ref List<Int64> words)
         {
             Int64 word = words[(int)nStep];
             command = word % 100;
@@ -64,7 +64,7 @@ namespace MyClasses
             }
         }
         //Opcode 5 is jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter.Otherwise, it does nothing.
-        public Int64 JumpIfTrue(Int64 globalStep)
+        private Int64 JumpIfTrue(Int64 globalStep)
         {
             if (ArgOne.argValue > 0)
                 Step = ArgTwo.argValue;
@@ -73,7 +73,7 @@ namespace MyClasses
             return Step;
         }
         //Opcode 6 is jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
-        public Int64 JumpIfFalse(Int64 globalStep)
+        private Int64 JumpIfFalse(Int64 globalStep)
         {
             if (ArgOne.argValue == 0)
                 Step = ArgTwo.argValue;
@@ -82,7 +82,7 @@ namespace MyClasses
             return Step;
         }
         //Opcode 7 is less than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
-        public void LessThan(List<Int64> words)
+        private void LessThan(List<Int64> words)
         {
             if (ArgOne.argValue < ArgTwo.argValue)
                 WriteMemory(ArgThree.argValue, ArgThree.argMode, 1, ref words);
@@ -91,7 +91,7 @@ namespace MyClasses
         }
 
         //Opcode 8 is equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
-        public void Equals(List<Int64> words)
+        private void Equals(List<Int64> words)
         {
             if (ArgOne.argValue == ArgTwo.argValue)
                 WriteMemory(ArgThree.argValue, ArgThree.argMode, 1, ref words);
@@ -100,14 +100,14 @@ namespace MyClasses
         }
 
         //Opcode 9: adjusts the relative base
-        public void AdjustRelativeBaseOffset()
+        private void AdjustRelativeBaseOffset()
         {
             relative_base_offset += ArgOne.argValue;
         }
 
-        public Int64 GetCommand()   { return command; }
-        public Int64 GetStep()      { return Step; }
-        public Int64 ReadMemory(Int64 mAddress, Int64 mode, ref List<Int64> words)
+        private Int64 GetCommand()   { return command; }
+        private Int64 GetStep()      { return Step; }
+        private Int64 ReadMemory(Int64 mAddress, Int64 mode, ref List<Int64> words)
         {
             Int64 res = -1;
             if (mode == 0) res = words[(int)(mAddress)];
@@ -115,26 +115,26 @@ namespace MyClasses
             if (mode == 2) res = words[(int)(mAddress + relative_base_offset)];
             return res;
         }
-        public void WriteMemory(Int64 mAddress, Int64 mode, Int64 mvalue, ref List<Int64> words)
+        private void WriteMemory(Int64 mAddress, Int64 mode, Int64 mvalue, ref List<Int64> words)
         {
             if (mode == 0 || mode == 1)
                 words[(int)mAddress] = mvalue;
             if (mode == 2)
                 words[(int)(mAddress + relative_base_offset)] = mvalue;
         }
-        public void Add(List<Int64> words)
+        private void Add(List<Int64> words)
         {
             WriteMemory(ArgThree.argValue, ArgThree.argMode, ArgOne.argValue + ArgTwo.argValue, ref words);
         }
-        public void Multi(List<Int64> words)
+        private void Multi(List<Int64> words)
         {
             WriteMemory(ArgThree.argValue, ArgThree.argMode, ArgOne.argValue * ArgTwo.argValue, ref words);
         }
-        public void Input(Int64 number, List<Int64> words)
+        private void Input(Int64 number, List<Int64> words)
         {
             WriteMemory(ArgOne.argValue, ArgOne.argMode, number, ref words);
         }
-        public Int64 Output()
+        private Int64 Output()
         {
             Console.WriteLine(ArgOne.argValue);
             Int64 res;
@@ -145,7 +145,7 @@ namespace MyClasses
             return res;
         }
 
-        public Int64 GetArgValue(Int64 ArgNum)
+        private Int64 GetArgValue(Int64 ArgNum)
         {
             Int64 res = 0;
             if (ArgNum == 0) res = ArgOne.argValue;
@@ -154,7 +154,7 @@ namespace MyClasses
             return res;
         }
 
-        public Int64 GetArgMode(Int64 ArgNum)
+        private Int64 GetArgMode(Int64 ArgNum)
         {
             Int64 res = 0;
             if (ArgNum == 0) res = ArgOne.argMode;
@@ -163,7 +163,7 @@ namespace MyClasses
             return res;
         }
 
-        public int GetArgNumber(Int64 arg)
+        private int GetArgNumber(Int64 arg)
         {
             int res = 0;
             switch (arg % 100)
@@ -181,7 +181,7 @@ namespace MyClasses
             }
             return res;
         }
-        public void Debug(Int64 nStep)
+        private void Debug(Int64 nStep)
         {
             Console.WriteLine("Step:        {0}", nStep);
             Console.WriteLine("Command:     {0},   arguments ({1})", GetCommandName(), GetArgNumber(GetCommand()));
