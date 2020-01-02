@@ -17,7 +17,7 @@ namespace MyClasses
         private static myArgument ArgOne;
         private static myArgument ArgTwo;
         private static myArgument ArgThree;
-        private TheCommand(Int64 nStep, ref List<Int64> words)
+        public TheCommand(Int64 nStep, ref List<Int64> words)
         {
             Int64 word = words[(int)nStep];
             command = word % 100;
@@ -136,13 +136,13 @@ namespace MyClasses
         }
         private Int64 Output()
         {
-            Console.WriteLine(ArgOne.argValue);
-            Int64 res;
-            if (ArgOne.argMode == 2)
-                res = ArgOne.argValue;
-            else
-                res = ArgOne.argValue;
-            return res;
+            //Console.WriteLine("Output: {0}" ,ArgOne.argValue);
+            //Int64 res;
+            //if (ArgOne.argMode == 2)
+            //    res = ArgOne.argValue;
+            //else
+            //    res = ArgOne.argValue;
+            return ArgOne.argValue; ;
         }
 
         private Int64 GetArgValue(Int64 ArgNum)
@@ -234,9 +234,9 @@ namespace MyClasses
             return Output;
         }
 
-        private Int64[] ExecuteOneCommand(Int64 nStep, Int64 InputValue, List<Int64> commands)
+        public Int64[] ExecuteOneCommand(Int64 nStep, Int64 InputValue, List<Int64> commands)
         {
-                Int64[] Output = { 0, 0 };
+                Int64[] Output = { -1, 0 };
                 Int64 stepIncrease = this.GetStep();
                 switch (this.GetCommand())
                 {
@@ -254,6 +254,10 @@ namespace MyClasses
 
                     case 4: // Output
                         Output[0] = this.Output();
+                        if (Output[0] == -1)
+                        {
+                        Console.WriteLine("WRONG OUTPUT: -1");
+                        }
                         //bError = true;
                         break;
 
