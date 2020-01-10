@@ -24,6 +24,17 @@ namespace Puzzle12
             this.velocity_z = 0;
         }
 
+        public Moon(Moon m)
+        {
+            this.name = m.name;
+            this.x = m.x;
+            this.y = m.y;
+            this.z = m.z;
+            this.velocity_x = m.velocity_x;
+            this.velocity_y = m.velocity_y;
+            this.velocity_z = m.velocity_z;
+        }
+
         public Moon UpdateVelocity(Moon targetMoon)
         {
             if (this.x > targetMoon.x)
@@ -72,23 +83,52 @@ namespace Puzzle12
             return this.GetKineticakEnergy() * this.GetPotentialEnergy();
         }
 
+        public bool Compare(Moon planet)
+        {
+            // We don't compare names because they are not the same.
+            if (this.x == planet.x &&
+                    this.y == planet.y &&
+                    this.z == planet.z &&
+                    this.velocity_x == planet.velocity_x &&
+                    this.velocity_y == planet.velocity_y &&
+                    this.velocity_z == planet.velocity_z)
+
+                return true;
+            else
+                return false;
+        }
+
+        public static void MoveThePlanets(List<Moon> Planets)
+        {
+            foreach (Moon planetA in Planets)
+                foreach (Moon planetB in Planets)
+                    planetA.UpdateVelocity(planetB);
+
+            foreach (Moon planet in Planets)
+            {
+                planet.UpdatePosition();
+            }
+        }
+
     }
     class Program
     {
         static void Main(string[] args)
         {
-            int steps = 1000;
-            Moon Io = new Moon("Io", -3, 10, -1);
-            Moon Europa = new Moon("Europa", -12, -10, -5);
-            Moon Ganymede = new Moon("Ganymede", -9, 0, 10);
-            Moon Callisto = new Moon("Callisto", 7, -5, -3);
+            DateTime dateTime = DateTime.Now;
+
+            //int  steps = 1000;
+            //Moon Io = new Moon("Io", -3, 10, -1);
+            //Moon Europa = new Moon("Europa", -12, -10, -5);
+            //Moon Ganymede = new Moon("Ganymede", -9, 0, 10);
+            //Moon Callisto = new Moon("Callisto", 7, -5, -3);
 
             //<x=  -3, y=  10, z= -1>
             //<x= -12, y= -10, z= -5>
             //<x=  -9, y=   0, z= 10>
             //<x=   7, y=  -5, z= -3>
 
-            //Test Sample -10 runs. Answer = 179
+            //Test Sample -10 runs. Answers: Total energy =  179  / Total movement = 2772
             //int steps = 10;
             //Moon Io = new Moon("Io", -1, 0, 2);
             //Moon Europa = new Moon("Europa", 2, -10, -7);
@@ -96,48 +136,93 @@ namespace Puzzle12
             //Moon Callisto = new Moon("Callisto", 3, 5, -1);
 
 
-            //test sample - 100 runs. Answer = 1940;
-            //int steps = 100;
-            //Moon Io = new Moon("Io", -8, -10, 0);
-            //Moon Europa = new Moon("Europa", 5, 5, 10);
-            //Moon Ganymede = new Moon("Ganymede", 2, -7, 3);
-            //Moon Callisto = new Moon("Callisto", 9, -8, -3);
+            //test sample - 100 runs. Answers: Total energy =  1940  / Total movement = 4686774924
+            int steps = 100;
+            Moon Io = new Moon("Io", -8, -10, 0);
+            Moon Europa = new Moon("Europa", 5, 5, 10);
+            Moon Ganymede = new Moon("Ganymede", 2, -7, 3);
+            Moon Callisto = new Moon("Callisto", 9, -8, -3);
 
             //< x = -8, y = -10, z =  0 >
             //< x =  5, y =   5, z = 10 >
             //< x =  2, y =  -7, z =  3 >
             //< x =  9, y =  -8, z = -3 >
 
+            List<Moon> PlanetsVanile = new List<Moon>();
+
+            PlanetsVanile.Add(Io);
+            PlanetsVanile.Add(Europa);
+            PlanetsVanile.Add(Ganymede);
+            PlanetsVanile.Add(Callisto);
+
+
+            // First part of the puzzle;
             List<Moon> Planets = new List<Moon>();
+            foreach (Moon planet in PlanetsVanile)
+                Planets.Add(new Moon(planet));
 
-            Planets.Add(Io);
-            Planets.Add(Europa);
-            Planets.Add(Ganymede);
-            Planets.Add(Callisto);
 
-            for (int i = 0; i < steps; i++)
+            while (steps-->0)
             {
-                foreach (Moon planetA in Planets)
-                    foreach (Moon planetB in Planets)
-                        planetA.UpdateVelocity(planetB);
-
-                foreach (Moon planet in Planets)
-                {
-                    planet.UpdatePosition();
-                    //Console.WriteLine("{0} : Potential E = {1}  Kinetic E = {2}  Total energy = {3}", Planets[x].name, Planets[x].GetPotentialEnergy(), Planets[x].GetKineticakEnergy(), Planets[x].GetTotalEnergy());
-                }
-
-               // foreach (Moon moon in Planets)
-               //     Console.WriteLine("<{0}> <{1}> <{2}> = P<{3}> - <{4}> <{5}> <{6}> = K<{7}>", moon.x, moon.y, moon.z, moon.GetPotentialEnergy(), moon.velocity_x, moon.velocity_y, moon.velocity_z, moon.GetKineticakEnergy());            
+                Moon.MoveThePlanets(Planets);
             }
 
             int nTotalEnergy=0;
-
             foreach (Moon planet in Planets)
                 nTotalEnergy += planet.GetTotalEnergy();
 
             Console.WriteLine("Total energy = {0}", nTotalEnergy);
 
+            // Second part of the puzzle;
+            //List<Moon> Planets2 = new List<Moon>();
+            //foreach (Moon planet in PlanetsVanile)
+            //    Planets2.Add(new Moon(planet));
+
+            Int64 nMovementCount;
+            //while(i != Planets2.Count) // i represents the number of moons with the exactly the same parameters
+            //{
+            //    i = 0;
+            //    Moon.MoveThePlanets(Planets2);
+            //    foreach (Moon planet in Planets2)
+            //        if(planet.Compare(PlanetsVanile[i]))
+            //            i++;
+            //        else
+            //            break;
+            //    nMovementCount++;
+            //}
+
+            Console.WriteLine("Execution time: {0}", DateTime.Now - dateTime);
         }
+
+        static Int64 IsGood(Int64 a, Int64 b, Int64 c, Int64 d)
+        {
+            Int64 res = 0;
+            if (a == 0 || b == 0 || c == 0 || d == 0)
+                return 0;
+
+            Int64 nMin = Math.Min(Math.Min(a, b), Math.Min(c, d));
+            if (a % nMin == 0 && b % nMin == 0 && c % nMin == 0 && d % nMin == 0)
+                res = nMin;
+
+            return res;
+        }
+
+        static Int64 GetNOK(Int64 a, Int64 b, Int64 c)
+        {
+            Int64 nMax = Math.Max(Math.Max(a, b), c);
+
+            for (Int64 i = 2;i < nMax; i++)
+            {
+                while (a % i == 0 && b % i ==0 && c % i ==0)
+                {
+                    a /= i;
+                    b /= i;
+                    c /= i;
+                }
+            }
+
+            return a*b*c;
+        }
+
     }
 }
