@@ -97,15 +97,16 @@ namespace Puzzle12
 
         public static Int64 GetFullCycleForAxis (char cAxis, List<Moon> PlanetsVanile) // 'X' 'Y' 'Z'
         {
-            int nTheVelocity = 0;
-            
+            int nTheVelocity    = 0;
+            bool bCondition = false;
+
             List<Moon> Planets2;
             Planets2 = new List<Moon>();
             foreach (Moon planet in PlanetsVanile)
                 Planets2.Add(new Moon(planet));
 
             Int64 nMovementCount = 0;
-            Int64 nCount = 0;
+            int nCount = 0;
             while (nCount != 4)
             {
                 nMovementCount++;
@@ -116,20 +117,24 @@ namespace Puzzle12
                     switch (cAxis) // this looks ugly, ned to think about
                     {
                         case 'X':
-                            nTheVelocity = planet.velocity_x;
+                            //nTheVelocity = planet.velocity_x;
+                            bCondition = (planet.velocity_x == 0 && planet.x == PlanetsVanile[nCount].x);
                             break;
                         case 'Y':
-                            nTheVelocity = planet.velocity_y;
+                            //nTheVelocity = planet.velocity_y;
+                            bCondition = (planet.velocity_y == 0 && planet.y == PlanetsVanile[nCount].y);
                             break;
                         case 'Z':
-                            nTheVelocity = planet.velocity_z;
+                            //nTheVelocity = planet.velocity_z;
+                            bCondition = (planet.velocity_z == 0 && planet.z == PlanetsVanile[nCount].z);
                             break;
                         default:
                             Console.WriteLine("Argument Axis should be X|Y|Z");
                             break;
                     }
-                                
-                if (nTheVelocity == 0)
+
+                    //if (nTheVelocity == 0)
+                    if (bCondition)
                         nCount++;
                     else
                         break;
@@ -213,29 +218,36 @@ namespace Puzzle12
             Int64 nZ = Moon.GetFullCycleForAxis('Z', PlanetsVanile);
             Console.WriteLine("Number of cycles: {0}", nZ);
 
-            Console.WriteLine("Final Answer: {0}", GetLCM(nX, nY, nZ) * 2); // Need to explain why  * 2 
+            Console.WriteLine("Final Answer: {0}", GetLCM(nX, nY, nZ)); 
             Console.WriteLine("----------------------------------------------");
             Console.WriteLine("Execution time: {0}", DateTime.Now - dateTime);
         }
 
-        static Int64 GetLCM(Int64 a, Int64 b, Int64 c) //Least common multiple
+        static Int64 GetLCM(Int64 nA, Int64 nB, Int64 nC) //Least common multiple
         {
-            Int64 nMax;
-            
-            nMax = Math.Max(a, b);
-            for (Int64 i = 2; i <= Math.Sqrt(nMax); i++)
-                while (a % i == 0 && b % i == 0) { a /= i; }
-
-            nMax = Math.Max(b, c);
-            for (Int64 i = 2; i <= Math.Sqrt(nMax); i++)
-                while (b % i == 0 && c % i == 0) { b /= i; }
-
-            nMax = Math.Max(a, c);
-            for (Int64 i = 2; i <= Math.Sqrt(nMax); i++)
-                while (a % i == 0 && c % i == 0) { c /= i; }
-
-            return a*b*c;
+            return GetLCM(GetLCM(nA, nB), nC);
         }
+
+        static Int64 GetLCM(Int64 nA, Int64 nB) //Least common multiple
+        {
+            if (nA == nB) return nA;
+
+            Int64 nMax = Math.Max(nA, nB);
+            Int64 nMin = Math.Min(nA, nB);
+            Int64 nGCD = 1; //Greatest common divisor
+
+            for (Int64 i = 2; i <= Math.Sqrt(nMax); i++)
+            {
+                while (nMax % i == 0 && nMin % i == 0)
+                {
+                    nGCD *= i;
+                    nMax /= i;
+                    nMin /= i;
+                }
+            }
+            return nA*nB/nGCD;
+        }
+
 
     }
 }
