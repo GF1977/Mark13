@@ -29,6 +29,7 @@ namespace Puzzle13
             Int64 nStep = 0;
             Int64[] res;
 
+
             StreamReader file = new StreamReader(@".\data.txt");
             string line = file.ReadLine();
             string[] words = line.Split(',');
@@ -38,7 +39,7 @@ namespace Puzzle13
                 commands_vanile.Add(Int64.Parse(word));
 
             // Extending the programm area by 10 bytes
-            for (int ii = 0; ii < 10; ii++)
+            for (int ii = 0; ii < 1000; ii++)
                 commands_vanile.Add(0);
 
             List<Int64> commands = new List<Int64>(commands_vanile);
@@ -46,6 +47,9 @@ namespace Puzzle13
             int nArcadeOutputCount = 0; // max = 3
             int[] nArComRaw = new int[3];
             List<ArcadeCommands> ArCommands = new List<ArcadeCommands>();
+
+            // Part 2 - Memory address 0 represents the number of quarters that have been inserted; set it to 2 to play for free.
+            commands[0] = 2;
 
             //Output[0] = Output , Output[1] = Step
             do
