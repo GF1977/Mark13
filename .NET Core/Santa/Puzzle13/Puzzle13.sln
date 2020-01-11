@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Puzzle13", "Puzzle13\Puzzle13.csproj", "{860E01EE-9D8B-4096-8AF8-52A1938CED1F}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MyClasses", "..\MyClasses\MyClasses\MyClasses.shproj", "{3418E81B-087C-483B-9323-D41E86BBB291}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\MyClasses\MyClasses\MyClasses.projitems*{3418e81b-087c-483b-9323-d41e86bbb291}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{860E01EE-9D8B-4096-8AF8-52A1938CED1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{860E01EE-9D8B-4096-8AF8-52A1938CED1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{860E01EE-9D8B-4096-8AF8-52A1938CED1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{860E01EE-9D8B-4096-8AF8-52A1938CED1F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B81CB5D2-64D4-474D-8E7F-6A5751786361}
+	EndGlobalSection
+EndGlobal
