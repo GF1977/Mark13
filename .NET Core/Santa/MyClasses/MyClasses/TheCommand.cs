@@ -236,7 +236,7 @@ namespace MyClasses
 
         public Int64[] ExecuteOneCommand(Int64 nStep, Int64 InputValue, List<Int64> commands)
         {
-                Int64[] Output = { -1, 0 };
+                Int64[] Output = {Int64.MinValue, 0 };
                 Int64 stepIncrease = this.GetStep();
                 switch (this.GetCommand())
                 {
@@ -254,7 +254,7 @@ namespace MyClasses
 
                     case 4: // Output
                         Output[0] = this.Output();
-                        if (Output[0] == -1)
+                        if (Output[0] == Int64.MinValue)
                         {
                         Console.WriteLine("WRONG OUTPUT: -1");
                         }
