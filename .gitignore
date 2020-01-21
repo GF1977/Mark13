@@ -6,3 +6,4 @@ PowerBI/
 .vs/
 bin/
 obj/
+/.NET Core/Test
