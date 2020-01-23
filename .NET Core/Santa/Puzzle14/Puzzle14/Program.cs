@@ -1,13 +1,12 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Collections;
+using System.IO;
 using System.Linq;
 
 namespace Puzzle14
 {
     class Program
-    {   
+    {
         public struct Ratio
         {
             public string code;
@@ -15,7 +14,7 @@ namespace Puzzle14
 
             public Ratio(string code, int count)
             {
-                this.code  = code;
+                this.code = code;
                 this.count = count;
             }
         }
@@ -26,10 +25,12 @@ namespace Puzzle14
             StreamReader file = new StreamReader(@".\data_test.txt");
             string data_from_file = file.ReadToEnd();
             string[] lines = data_from_file.Split("\r\n");
-                 List<Ratio>[] Resources = new List<Ratio>[lines.Length];
+            List<Ratio>[] Resources = new List<Ratio>[lines.Length];
 
             // Filling the array of lists 
             int i = 0;
+            List<Ratio> FuelReaction = new List<Ratio>();
+
             foreach (string line in lines)
             {
                 Resources[i] = new List<Ratio>();
@@ -39,38 +40,106 @@ namespace Puzzle14
                 {
                     string[] tempWords = word.Split(" ");
                     Resources[i].Add(new Ratio(tempWords[1], int.Parse(tempWords[0])));
+                    if ((Resources[i].FindIndex(n => n.code.Contains("FUEL")) > 0))
+                        FuelReaction = Resources[i];
                 }
                 Resources[i].Reverse();
                 i++;
             }
 
-            List<Ratio> FuelReaction  = new List<Ratio>();
+            // Preliminary step - generate the chains of elements based on the FUEL chain
             List<Ratio> FinalReaction = new List<Ratio>();
-
-            foreach (List<Ratio> Reaction in Resources)
-            {
-                int a = Reaction.FindIndex(n => n.code.Contains("FUEL"));
-                if (a>=0)
-                {
-                    FuelReaction = Reaction;
-                    break;
-                }
-            }
-
             foreach (Ratio Element in FuelReaction)
             {
-                if(Element.code != "FUEL")
+                if (Element.code != "FUEL")
                     FinalReaction.Add(Element);
             }
 
+            // First tier - replace elements from FinalReaction by their chain
+            FinalReaction = GenerateTheChain(FinalReaction, Resources);
 
-            
-            int nHitCount = 0;
-            int nHitCountMax = -1;
-            bool bStop = false;
-            while (!bStop)
+            // Summarize the equal elmenents
+            Console.WriteLine("----------    Summarizing    -------------");
+            FinalReaction = Summarize(FinalReaction);
+
+            // Need to check that all chains are generated
+            while (!isReadyToConvert(FinalReaction, Resources))
             {
-                nHitCountMax = nHitCount;
+                FinalReaction = GenerateTheChain(FinalReaction, Resources);
+                FinalReaction = Summarize(FinalReaction);
+            }
+
+            // And the last tier - conversion to ORE
+            Console.WriteLine("---------- Conversion to ORE -------------");
+            int nOre = ConvertToOre(FinalReaction, Resources);
+
+
+
+            Console.WriteLine("----------  The Final Result -------------");
+            Console.WriteLine("Ore: {0,-6}", nOre);
+            
+
+        }
+
+
+        static bool isReadyToConvert(List<Ratio> FinalReaction, List<Ratio>[] Resources)
+        {
+            Ratio X = new Ratio();
+            bool bReady = true;
+            foreach (Ratio ElementA in FinalReaction)
+            {
+                foreach (List<Ratio> Reaction in Resources)
+                {
+                    if (Reaction[0].code == ElementA.code)
+                        if (Reaction.Count() == 2)
+                        {
+                            Console.WriteLine("{0} can be converted to FUEL", ElementA.code);
+                        }
+                        else
+                        {
+                            Console.WriteLine("{0} can't be converted to FUEL", ElementA.code);
+                            X.code = ElementA.code;
+                            X.count = ElementA.count + (Reaction[0].count - ElementA.count % Reaction[0].count);
+                            bReady = false;
+                        }
+                }
+            }
+            if (!bReady)
+            {
+                int nPosition = FinalReaction.FindIndex(n => n.code == X.code);
+                FinalReaction[nPosition] = X;
+            }
+
+            return bReady;
+        }
+
+        static List<Ratio> Summarize(List<Ratio> FinalReaction)
+        {
+            List<Ratio> temp = new List<Ratio>();
+            foreach (Ratio ElementA in FinalReaction)
+            {
+                Ratio R = new Ratio(ElementA.code, 0);
+                foreach (Ratio ElementB in FinalReaction)
+                {
+                    if (ElementA.code == ElementB.code)
+                        R.count += ElementB.count;
+                }
+                int d = temp.FindIndex(n => n.code == R.code);
+                if (d< 0)
+                {
+                    temp.Add(R);
+                    Console.WriteLine("{0,-6} {1,6} ", R.code, R.count);
+                }
+            }
+            return temp;
+        }
+
+        static List<Ratio> GenerateTheChain(List<Ratio> FinalReaction, List<Ratio>[] Resources)
+        {
+            int nHitCount = 0;
+            while (nHitCount < FinalReaction.Count())
+            {
+                Console.WriteLine("-----------------------------------");
                 nHitCount = 0;
                 List<Ratio> tempElement = new List<Ratio>();
                 foreach (Ratio Element in FinalReaction)
@@ -80,44 +149,19 @@ namespace Puzzle14
                         foreach (Ratio El in X)
                         {
                             if (El.code != Element.code)
-                                Console.WriteLine("Element: {0} - {1}", El.code, El.count);
+                                Console.WriteLine("Element: {0,-6} - {1,6}", El.code, El.count);
                             tempElement.Add(El);
                         }
                     else
                     {
-                        Console.WriteLine("Element: {0} - {1}", Element.code, Element.count);
+                        Console.WriteLine("Element: {0,-6} - {1,6}", Element.code, Element.count);
                         tempElement.Add(Element);
                         nHitCount++;
                     }
                 }
-                Console.WriteLine("---------------- nHitCount = {0} ---------------", nHitCount);
-                if (nHitCount == nHitCountMax) bStop = true;
                 FinalReaction = tempElement;
             }
-
-            Console.WriteLine("-----------------------------------");
-            List<Ratio> temp = new List<Ratio>();
-            foreach (Ratio ElementA in FinalReaction)
-            {
-                Ratio R = new Ratio(ElementA.code, 0);
-                foreach (Ratio ElementB in FinalReaction)
-                {
-
-                    if (ElementA.code == ElementB.code)
-                        R.count += ElementB.count;
-                }
-                int d = temp.FindIndex(n => n.code == R.code);
-                if (d < 0)
-                {
-                    temp.Add(R);
-                    Console.WriteLine("{0} {1}", R.code, R.count);
-                }
-            }
-
-            Console.WriteLine("-----------------------------------");
-            int nOre = ConvertToOre(temp, Resources);
-            Console.WriteLine("Ore: {0}",nOre);
-
+            return FinalReaction;
         }
 
         static int ConvertToOre(List<Ratio> FinalReaction, List<Ratio>[] Resources)
@@ -132,6 +176,10 @@ namespace Puzzle14
                         int nRate = ElementA.count  / Reaction[0].count ;
                         if (ElementA.count % Reaction[0].count > 0)
                             nRate++;
+                        else
+                            Console.WriteLine("Can't convert {0,-6} {1,6}  to  {2,6}", ElementA.code, ElementA.count, Reaction[1].count);
+
+                        Console.WriteLine("{0,-6} {1,6}  = ORE {2,6}",ElementA.code, ElementA.count, Reaction[1].count * nRate);
                         nOre += Reaction[1].count * nRate;
                     }
                 }
