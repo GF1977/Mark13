@@ -55,19 +55,13 @@ namespace Puzzle14
                     FinalReaction.Add(Element);
             }
 
-            // First tier - replace elements from FinalReaction by their chain
-            FinalReaction = GenerateTheChain(FinalReaction, Resources);
-
-            // Summarize the equal elmenents
-            Console.WriteLine("----------    Summarizing    -------------");
-            FinalReaction = Summarize(FinalReaction);
-
             // Need to check that all chains are generated
-            while (!isReadyToConvert(FinalReaction, Resources))
+            do
             {
                 FinalReaction = GenerateTheChain(FinalReaction, Resources);
                 FinalReaction = Summarize(FinalReaction);
             }
+            while (!isReadyToConvert(FinalReaction, Resources));
 
             // And the last tier - conversion to ORE
             Console.WriteLine("---------- Conversion to ORE -------------");
@@ -91,22 +85,29 @@ namespace Puzzle14
                 foreach (List<Ratio> Reaction in Resources)
                 {
                     if (Reaction[0].code == ElementA.code)
-                        if (Reaction.Count() == 2)
-                        {
-                            Console.WriteLine("{0} can be converted to FUEL", ElementA.code);
-                        }
-                        else
+                        if (Reaction.Count() != 2)
                         {
                             Console.WriteLine("{0} can't be converted to FUEL", ElementA.code);
-                            X.code = ElementA.code;
-                            X.count = ElementA.count + (Reaction[0].count - ElementA.count % Reaction[0].count);
-                            bReady = false;
+                            //Console.WriteLine("Conver manually? [Y/N]");
+                            //string a = Console.ReadLine().ToUpper();
+
+                            //if (a == "Y")
+                            {
+                                //X.code = ElementA.code;
+                                //if (ElementA.count <= Reaction[0].count)
+                                //    X.count = Reaction[0].count;
+                                //else
+                                //    X.count = ElementA.count + (Reaction[0].count - ElementA.count % Reaction[0].count);
+
+                               // bReady = false;
+                            }
                         }
                 }
             }
             if (!bReady)
             {
                 int nPosition = FinalReaction.FindIndex(n => n.code == X.code);
+                Console.WriteLine("Replaced {0} {1} to {2} {3}", FinalReaction[nPosition].code, FinalReaction[nPosition].count,X.code,X.count);
                 FinalReaction[nPosition] = X;
             }
 
@@ -176,8 +177,6 @@ namespace Puzzle14
                         int nRate = ElementA.count  / Reaction[0].count ;
                         if (ElementA.count % Reaction[0].count > 0)
                             nRate++;
-                        else
-                            Console.WriteLine("Can't convert {0,-6} {1,6}  to  {2,6}", ElementA.code, ElementA.count, Reaction[1].count);
 
                         Console.WriteLine("{0,-6} {1,6}  = ORE {2,6}",ElementA.code, ElementA.count, Reaction[1].count * nRate);
                         nOre += Reaction[1].count * nRate;
@@ -192,6 +191,7 @@ namespace Puzzle14
         }
         static List<Ratio> FindReaction(Ratio Element, List<Ratio>[] Resources)
         {
+            bool bA = true;
             if (Element.code == "ORE")
                 return null;
 
@@ -217,6 +217,19 @@ namespace Puzzle14
                             Res.Add(Temp);
                         }
                     }
+                    else if (Element.count > Reaction[0].count)
+                    {
+                        foreach (Ratio R in Reaction)
+                        {
+                            int nTemp = R.count * (Element.count / Reaction[0].count);
+                            Ratio Temp = new Ratio(R.code, nTemp);
+                            Res.Add(Temp);
+                        }
+                        Ratio Temp2 = new Ratio(Element.code, Element.count % Reaction[0].count);
+                        Res.Add(Temp2);
+                        Res.RemoveAt(0);
+                        bA = false;
+                    }
                     else
                         Res = null;
 
@@ -225,7 +238,7 @@ namespace Puzzle14
 
             }
             
-            if(Res!=null)
+            if(Res!=null && bA)
                 Res.Remove(Element);
 
             return Res;
