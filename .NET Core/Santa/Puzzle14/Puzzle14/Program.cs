@@ -19,17 +19,18 @@ namespace Puzzle14
             }
         }
 
+        static List<Ratio>[] Resources;
 
         static void Main(string[] args)
         {
-            StreamReader file = new StreamReader(@".\data_test.txt");
+            StreamReader file = new StreamReader(@".\data.txt");
             string data_from_file = file.ReadToEnd();
             string[] lines = data_from_file.Split("\r\n");
-            List<Ratio>[] Resources = new List<Ratio>[lines.Length];
+            Resources = new List<Ratio>[lines.Length];
 
             // Filling the array of lists 
             int i = 0;
-            List<Ratio> FuelReaction = new List<Ratio>();
+            List<Ratio> FinalReaction = new List<Ratio>();
 
             foreach (string line in lines)
             {
@@ -41,76 +42,16 @@ namespace Puzzle14
                     string[] tempWords = word.Split(" ");
                     Resources[i].Add(new Ratio(tempWords[1], int.Parse(tempWords[0])));
                     if ((Resources[i].FindIndex(n => n.code.Contains("FUEL")) > 0))
-                        FuelReaction = Resources[i];
+                        FinalReaction = Resources[i];
                 }
                 Resources[i].Reverse();
                 i++;
             }
+            FinalReaction = GenerateTheChain(FinalReaction);
 
-            // Preliminary step - generate the chains of elements based on the FUEL chain
-            List<Ratio> FinalReaction = new List<Ratio>();
-            foreach (Ratio Element in FuelReaction)
-            {
-                if (Element.code != "FUEL")
-                    FinalReaction.Add(Element);
-            }
-
-            // First tier - replace elements from FinalReaction by their chain
-            FinalReaction = GenerateTheChain(FinalReaction, Resources);
-
-            // Summarize the equal elmenents
-            Console.WriteLine("----------    Summarizing    -------------");
-            FinalReaction = Summarize(FinalReaction);
-
-            // Need to check that all chains are generated
-            while (!isReadyToConvert(FinalReaction, Resources))
-            {
-                FinalReaction = GenerateTheChain(FinalReaction, Resources);
-                FinalReaction = Summarize(FinalReaction);
-            }
-
-            // And the last tier - conversion to ORE
-            Console.WriteLine("---------- Conversion to ORE -------------");
-            int nOre = ConvertToOre(FinalReaction, Resources);
-
-
-
-            Console.WriteLine("----------  The Final Result -------------");
-            Console.WriteLine("Ore: {0,-6}", nOre);
+            Console.WriteLine("Ore: {0,-6}", FinalReaction[0].count);
             
 
-        }
-
-
-        static bool isReadyToConvert(List<Ratio> FinalReaction, List<Ratio>[] Resources)
-        {
-            Ratio X = new Ratio();
-            bool bReady = true;
-            foreach (Ratio ElementA in FinalReaction)
-            {
-                foreach (List<Ratio> Reaction in Resources)
-                {
-                    if (Reaction[0].code == ElementA.code)
-                        if (Reaction.Count() == 2)
-                        {
-                            Console.WriteLine("{0} can be converted to FUEL", ElementA.code);
-                        }
-                        else
-                        {
-                            Console.WriteLine("{0} can't be converted to FUEL", ElementA.code);
-                            X.code = ElementA.code;
-                            X.count = ElementA.count + (Reaction[0].count - ElementA.count % Reaction[0].count);
-                            bReady = false;
-                        }
-                }
-            }
-            if (!bReady)
-            {
-                int nPosition = FinalReaction.FindIndex(n => n.code == X.code);
-                FinalReaction[nPosition] = X;
-            }
-
-            return bReady;
         }
 
         static List<Ratio> Summarize(List<Ratio> FinalReaction)
@@ -120,77 +61,102 @@ namespace Puzzle14
             {
                 Ratio R = new Ratio(ElementA.code, 0);
                 foreach (Ratio ElementB in FinalReaction)
-                {
                     if (ElementA.code == ElementB.code)
                         R.count += ElementB.count;
-                }
                 int d = temp.FindIndex(n => n.code == R.code);
                 if (d< 0)
-                {
                     temp.Add(R);
-                    Console.WriteLine("{0,-6} {1,6} ", R.code, R.count);
-                }
             }
             return temp;
         }
 
-        static List<Ratio> GenerateTheChain(List<Ratio> FinalReaction, List<Ratio>[] Resources)
+        static List<Ratio> GenerateTheChain(List<Ratio> FinalReaction)
         {
-            int nHitCount = 0;
-            while (nHitCount < FinalReaction.Count())
+            int n = 0;
+            Ratio ElementForForceConversion = new Ratio();
+            while (FinalReaction.Count()!=1)
             {
-                Console.WriteLine("-----------------------------------");
-                nHitCount = 0;
                 List<Ratio> tempElement = new List<Ratio>();
                 foreach (Ratio Element in FinalReaction)
                 {
-                    List<Ratio> X = FindReaction(Element, Resources);
+                    List<Ratio> X = FindReaction(Element);
                     if (X != null)
                         foreach (Ratio El in X)
-                        {
-                            if (El.code != Element.code)
-                                Console.WriteLine("Element: {0,-6} - {1,6}", El.code, El.count);
                             tempElement.Add(El);
-                        }
                     else
-                    {
-                        Console.WriteLine("Element: {0,-6} - {1,6}", Element.code, Element.count);
                         tempElement.Add(Element);
-                        nHitCount++;
-                    }
                 }
-                FinalReaction = tempElement;
+                FinalReaction = Summarize(tempElement);
+                
+                n++;
+                if (n>10)
+                {
+                    n = 0;
+                    List<Ratio> nonConvertableElements = new List<Ratio>();
+                    foreach (Ratio El in FinalReaction)
+                        if (El.code != "ORE")
+                            nonConvertableElements.Add(El);
+
+                    ElementForForceConversion = GetparentElement(nonConvertableElements);
+
+                    List<Ratio> MainReaction = new List<Ratio>();
+                    foreach (List<Ratio> Reaction in Resources)
+                    {
+                        if (ElementForForceConversion.code == Reaction[0].code)
+                        {
+                            MainReaction = Reaction;
+                            foreach (Ratio Element in MainReaction)
+                                if(MainReaction[0].code != Element.code)
+                                    FinalReaction.Add(Element);
+
+                            FinalReaction.Remove(ElementForForceConversion);
+                            break;
+                        }
+                    }
+
+                    FinalReaction = Summarize(FinalReaction);
+
+                }
             }
             return FinalReaction;
         }
 
-        static int ConvertToOre(List<Ratio> FinalReaction, List<Ratio>[] Resources)
+        static Ratio GetparentElement(List<Ratio> nonConvertableElements)
         {
-            int nOre = 0;
-            foreach (Ratio ElementA in FinalReaction)
-            {
-                foreach (List<Ratio> Reaction in Resources)
+            List<Ratio> ChildList = new List<Ratio>();
+            foreach (Ratio ElementA in nonConvertableElements)
+                foreach (Ratio ElementB in nonConvertableElements)
                 {
-                    if(Reaction[0].code == ElementA.code)
+                    if (ElementA.code != ElementB.code)
+                    if (IsChild(ElementB, ElementA))
                     {
-                        int nRate = ElementA.count  / Reaction[0].count ;
-                        if (ElementA.count % Reaction[0].count > 0)
-                            nRate++;
-                        else
-                            Console.WriteLine("Can't convert {0,-6} {1,6}  to  {2,6}", ElementA.code, ElementA.count, Reaction[1].count);
-
-                        Console.WriteLine("{0,-6} {1,6}  = ORE {2,6}",ElementA.code, ElementA.count, Reaction[1].count * nRate);
-                        nOre += Reaction[1].count * nRate;
+                         ChildList.Add(ElementB);
                     }
                 }
 
-                if (ElementA.code == "ORE")
-                    nOre += ElementA.count;
-            }
-            
-            return nOre;
+            foreach (Ratio Child in ChildList)
+                nonConvertableElements.Remove(Child);
+
+            return nonConvertableElements[0];
         }
-        static List<Ratio> FindReaction(Ratio Element, List<Ratio>[] Resources)
+
+
+        static bool IsChild(Ratio Child, Ratio Parent)
+        {
+
+            if (Child.code == Parent.code)
+                return true;
+
+            else
+                foreach (List<Ratio> Reaction in Resources)
+                    if (Reaction[0].code == Parent.code)
+                        foreach (Ratio R in Reaction)
+                            if (R.code != Parent.code)
+                                if (IsChild(Child, R))
+                                    return true;
+            return false;
+        }
+        static List<Ratio> FindReaction(Ratio Element)
         {
             if (Element.code == "ORE")
                 return null;
@@ -198,36 +164,40 @@ namespace Puzzle14
             List<Ratio> Res = new List<Ratio>();
             foreach (List<Ratio> Reaction in Resources)
             {
-                    if(Reaction[0].code == Element.code)
+                    if(Element.code == Reaction[0].code && Reaction[0].code != "FUEL")
                     {
-
-                    if (Reaction[0].count == Element.count)
-                    {
+                    if (Element.count == Reaction[0].count)
                         foreach (Ratio R in Reaction)
                             Res.Add(R);
-                    }
-
-                    else
-                    if (Element.count % Reaction[0].count == 0)
-                    {
+                    
+                    else if (Element.count % Reaction[0].count == 0)
                         foreach (Ratio R in Reaction)
                         {
                             int nTemp = R.count * (Element.count / Reaction[0].count);
                             Ratio Temp = new Ratio(R.code, nTemp);
                             Res.Add(Temp);
                         }
-                    }
-                    else
-                        Res = null;
 
-                    break;
+                    else if (Element.count % Reaction[0].count > 0 && Element.count > Reaction[0].count)
+                    {
+                        Ratio Temp;
+                        foreach (Ratio R in Reaction)
+                        {
+                            int nTemp = R.count * (Element.count / Reaction[0].count);
+                            Temp = new Ratio(R.code, nTemp);
+                            Res.Add(Temp);
+                        }
+                        Temp.code = Element.code;
+                        Temp.count = Element.count % Reaction[0].count;
+                        Res.Add(Temp);
+                        Res.RemoveAt(0);
                     }
-
+                    else    
+                        return null;
+                    }
             }
-            
-            if(Res!=null)
-                Res.Remove(Element);
-
+           
+            Res.Remove(Element);
             return Res;
         }
     }
