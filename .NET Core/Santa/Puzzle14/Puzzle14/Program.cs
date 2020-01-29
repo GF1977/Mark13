@@ -10,11 +10,16 @@ namespace Puzzle14
         public struct Ratio
         {
             public string code;
-            public int count;
+            public long count;
 
-            public Ratio(string code, int count)
+            public Ratio(string code, long count)
             {
                 this.code = code;
+                this.count = count;
+            }
+
+            public void SetCount(long count)
+            {
                 this.count = count;
             }
         }
@@ -29,8 +34,8 @@ namespace Puzzle14
             Resources = new List<Ratio>[lines.Length];
 
             // Filling the array of lists 
-            int i = 0;
-            List<Ratio> FinalReaction = new List<Ratio>();
+            long i = 0;
+            List<Ratio> VanilaReaction = new List<Ratio>();
 
             foreach (string line in lines)
             {
@@ -42,17 +47,66 @@ namespace Puzzle14
                     string[] tempWords = word.Split(" ");
                     Resources[i].Add(new Ratio(tempWords[1], int.Parse(tempWords[0])));
                     if ((Resources[i].FindIndex(n => n.code.Contains("FUEL")) > 0))
-                        FinalReaction = Resources[i];
+                        VanilaReaction = Resources[i];
                 }
                 Resources[i].Reverse();
                 i++;
             }
-            FinalReaction = GenerateTheChain(FinalReaction);
 
+            // Part One
+
+            List<Ratio> FinalReaction = VanilaReaction;
+            FinalReaction = GenerateTheChain(FinalReaction);
+            Console.WriteLine("-- Part One --");
             Console.WriteLine("Ore: {0,-6}", FinalReaction[0].count);
-            
+            Console.WriteLine("");
+
+            //Part TWO
+
+            Console.WriteLine("-- Part Two --");
+            const long ORE = 1000000000000;
+            long nFuel = ORE / FinalReaction[0].count;
+            long nFuelIncremental = 1024;
+            long producedOre = 0;
+
+            while (nFuelIncremental > 0)
+            {
+                nFuel += nFuelIncremental;
+                producedOre = GetOreForFuel(nFuel, VanilaReaction);
+                Console.WriteLine("Fuel: {0,-10} Ore: {1,-10} Step: {2,-5}", nFuel, producedOre, nFuelIncremental);
+                if (producedOre > ORE)
+                {
+                    nFuel -= nFuelIncremental;
+                    nFuelIncremental /= 2;
+                }
+                else
+                    nFuelIncremental *= 2;
+            }
+
+            Console.WriteLine("Final answer: Fuel: {0,-6}", nFuel);
+        }
+
+        static long GetOreForFuel(long nFuel, List<Ratio> VanilaReaction)
+        {
+            List<Ratio> FinalReaction;
+            long producedOre = 0;
+            FinalReaction = new List<Ratio>();
+            foreach (Ratio X in VanilaReaction)
+            {
+                Ratio Temp = new Ratio(X.code, X.count * nFuel);
+                FinalReaction.Add(Temp);
+            }
+            Ratio R = new Ratio();
+            R.code = "FUEL";
+            R.count = nFuel;
+            FinalReaction[0] = R;//.SetCount(nFuel);
+            FinalReaction = GenerateTheChain(FinalReaction);
+            producedOre = FinalReaction[0].count;
+
+            return producedOre;
 
         }
+
 
         static List<Ratio> Summarize(List<Ratio> FinalReaction)
         {
@@ -63,7 +117,7 @@ namespace Puzzle14
                 foreach (Ratio ElementB in FinalReaction)
                     if (ElementA.code == ElementB.code)
                         R.count += ElementB.count;
-                int d = temp.FindIndex(n => n.code == R.code);
+                long d = temp.FindIndex(n => n.code == R.code);
                 if (d< 0)
                     temp.Add(R);
             }
@@ -72,24 +126,27 @@ namespace Puzzle14
 
         static List<Ratio> GenerateTheChain(List<Ratio> FinalReaction)
         {
-            int n = 0;
+            long n = 0;
             Ratio ElementForForceConversion = new Ratio();
             while (FinalReaction.Count()!=1)
             {
-                List<Ratio> tempElement = new List<Ratio>();
-                foreach (Ratio Element in FinalReaction)
-                {
-                    List<Ratio> X = FindReaction(Element);
-                    if (X != null)
-                        foreach (Ratio El in X)
-                            tempElement.Add(El);
-                    else
-                        tempElement.Add(Element);
-                }
-                FinalReaction = Summarize(tempElement);
-                
+                //while(FinalReaction.Count() != n)
+                //{
+                //    n = FinalReaction.Count();
+                    List<Ratio> tempElement = new List<Ratio>();
+                    foreach (Ratio Element in FinalReaction)
+                    {
+                        List<Ratio> X = FindReaction(Element);
+                        if (X != null)
+                            foreach (Ratio El in X)
+                                tempElement.Add(El);
+                        else
+                            tempElement.Add(Element);
+                    }
+                    FinalReaction = Summarize(tempElement);
+               // }
                 n++;
-                if (n>10)
+                if (n>3)
                 {
                     n = 0;
                     List<Ratio> nonConvertableElements = new List<Ratio>();
@@ -173,7 +230,7 @@ namespace Puzzle14
                     else if (Element.count % Reaction[0].count == 0)
                         foreach (Ratio R in Reaction)
                         {
-                            int nTemp = R.count * (Element.count / Reaction[0].count);
+                            long nTemp = R.count * (Element.count / Reaction[0].count);
                             Ratio Temp = new Ratio(R.code, nTemp);
                             Res.Add(Temp);
                         }
@@ -183,7 +240,7 @@ namespace Puzzle14
                         Ratio Temp;
                         foreach (Ratio R in Reaction)
                         {
-                            int nTemp = R.count * (Element.count / Reaction[0].count);
+                            long nTemp = R.count * (Element.count / Reaction[0].count);
                             Temp = new Ratio(R.code, nTemp);
                             Res.Add(Temp);
                         }
