@@ -17,11 +17,6 @@ namespace Puzzle14
                 this.code = code;
                 this.count = count;
             }
-
-            public void SetCount(long count)
-            {
-                this.count = count;
-            }
         }
 
         static List<Ratio>[] Resources;
@@ -54,10 +49,10 @@ namespace Puzzle14
             }
 
             // Part One
+            Console.WriteLine("-- Part One --");
 
             List<Ratio> FinalReaction = VanilaReaction;
             FinalReaction = GenerateTheChain(FinalReaction);
-            Console.WriteLine("-- Part One --");
             Console.WriteLine("Ore: {0,-6}", FinalReaction[0].count);
             Console.WriteLine("");
 
@@ -89,22 +84,12 @@ namespace Puzzle14
         static long GetOreForFuel(long nFuel, List<Ratio> VanilaReaction)
         {
             List<Ratio> FinalReaction;
-            long producedOre = 0;
             FinalReaction = new List<Ratio>();
             foreach (Ratio X in VanilaReaction)
-            {
-                Ratio Temp = new Ratio(X.code, X.count * nFuel);
-                FinalReaction.Add(Temp);
-            }
-            Ratio R = new Ratio();
-            R.code = "FUEL";
-            R.count = nFuel;
-            FinalReaction[0] = R;//.SetCount(nFuel);
+                FinalReaction.Add(new Ratio(X.code, X.count * nFuel));
+
             FinalReaction = GenerateTheChain(FinalReaction);
-            producedOre = FinalReaction[0].count;
-
-            return producedOre;
-
+            return FinalReaction[0].count; 
         }
 
 
@@ -117,8 +102,7 @@ namespace Puzzle14
                 foreach (Ratio ElementB in FinalReaction)
                     if (ElementA.code == ElementB.code)
                         R.count += ElementB.count;
-                long d = temp.FindIndex(n => n.code == R.code);
-                if (d< 0)
+                if (temp.FindIndex(n => n.code == R.code)  < 0)
                     temp.Add(R);
             }
             return temp;
@@ -130,9 +114,6 @@ namespace Puzzle14
             Ratio ElementForForceConversion = new Ratio();
             while (FinalReaction.Count()!=1)
             {
-                //while(FinalReaction.Count() != n)
-                //{
-                //    n = FinalReaction.Count();
                     List<Ratio> tempElement = new List<Ratio>();
                     foreach (Ratio Element in FinalReaction)
                     {
@@ -144,9 +125,8 @@ namespace Puzzle14
                             tempElement.Add(Element);
                     }
                     FinalReaction = Summarize(tempElement);
-               // }
                 n++;
-                if (n>3)
+                if (n>5)  //Magic number - need to rid it off
                 {
                     n = 0;
                     List<Ratio> nonConvertableElements = new List<Ratio>();
@@ -183,20 +163,14 @@ namespace Puzzle14
             List<Ratio> ChildList = new List<Ratio>();
             foreach (Ratio ElementA in nonConvertableElements)
                 foreach (Ratio ElementB in nonConvertableElements)
-                {
-                    if (ElementA.code != ElementB.code)
-                    if (IsChild(ElementB, ElementA))
-                    {
-                         ChildList.Add(ElementB);
-                    }
-                }
+                    if (ElementA.code != ElementB.code && IsChild(ElementB, ElementA))
+                            ChildList.Add(ElementB);
 
             foreach (Ratio Child in ChildList)
                 nonConvertableElements.Remove(Child);
 
             return nonConvertableElements[0];
         }
-
 
         static bool IsChild(Ratio Child, Ratio Parent)
         {
