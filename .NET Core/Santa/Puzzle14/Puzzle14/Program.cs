@@ -11,8 +11,7 @@ namespace Puzzle14
         {
             public string code;
             public long count;
-
-            public Ratio(string code, long count)
+            public Ratio(string code, long count, bool child = false)
             {
                 this.code = code;
                 this.count = count;
@@ -23,7 +22,7 @@ namespace Puzzle14
 
         static void Main(string[] args)
         {
-            StreamReader file = new StreamReader(@".\data.txt");
+            StreamReader file = new StreamReader(@".\data_test.txt");
             string data_from_file = file.ReadToEnd();
             string[] lines = data_from_file.Split("\r\n");
             Resources = new List<Ratio>[lines.Length];
@@ -47,6 +46,8 @@ namespace Puzzle14
                 Resources[i].Reverse();
                 i++;
             }
+
+
 
             // Part One
             Console.WriteLine("-- Part One --");
@@ -202,7 +203,7 @@ namespace Puzzle14
 
                         Res.Remove(Element); //as we replaced the element by its children
                     }
-                    else if (Element.count % Reaction[0].count > 0 && Element.count > TopElement.count)
+                    else if (Element.count % TopElement.count > 0 && Element.count > TopElement.count)
                     {
                         foreach (Ratio R in Reaction)
                             Res.Add(new Ratio(R.code, R.count * (Element.count / TopElement.count)));
