@@ -12,21 +12,12 @@ namespace Puzzle15
 {
     class Program
     {
-        const int MAX_X = 42;
-        const int MAX_Y = 42;
-        static int[,,] Corridor = new int[MAX_X, MAX_Y, 2]; // last parameter keeps how much time Droid was there
+        static Int64 nProgrammStep = 0;
+        const int MAX_X = 50;
+        const int MAX_Y = 50;
+        static int[,,] Corridor = new int[MAX_X, MAX_Y, 1]; 
         static List<Int64> commands;
-        static List<string> route;
         // Only four movement commands are understood: north (1), south (2), west (3), and east (4).
-        enum direction
-        {
-            north,
-            south,
-            west,
-            east
-        };
-
-        static direction D;
 
         static void Main(string[] args)
         {
@@ -43,202 +34,124 @@ namespace Puzzle15
 
             for (Int64 x = 0; x < MAX_X; x++)
                 for (Int64 y = 0; y < MAX_Y; y++)
-                {
-                    Corridor[x, y, 0] = 3;  // 3 means unexplored area
-                    Corridor[x, y, 1] = 0;  // how much times droid was there
-                }
+                    Corridor[x, y, 0] = 0;  // 0 means unexplored area
 
-            route = new List<string>();
-            LaunchDroid(MAX_X / 2, MAX_Y / 2,false);
+            LaunchDroid(MAX_X / 2, MAX_Y / 2);
         }
-
-        static void DrawCorridor()
+        static void WriteMap(ref int posX, ref int posY, int nDirection, Int64 nStatus)
         {
-            for (int y = 0; y < MAX_Y; y++)
-            {
-                Console.SetCursorPosition(0, y);
-                for (int x = 0; x < MAX_X; x++)
+            int nPrevPosX = posX;
+            int nPrevPosY = posY;
+            switch (nDirection)
                 {
-                    if (Corridor[x, y, 0] == 0)
-                    {
-                        Console.Write("#");
-                    }
-                    if (Corridor[x, y, 0] == 1)
-                    {
-                        Console.Write(".");
-                    }
-                    if (Corridor[x, y, 0] == 2)
-                    {
-                        Console.Write("O");
-                    }
-                    if (Corridor[x, y, 0] == 3)
-                    {
-                        Console.Write("?");
-                    }
-                }
-            }
-        }
-        static void MoveTheRobot(ref int X, ref int Y, direction D, bool reverse = false)
-        {
-            if (reverse)
-            {
-                switch (D)
-                {
-                    case direction.north: Y++; break;
-                    case direction.south: Y--; break;
-                    case direction.west: X++; break;
-                    case direction.east: X--; break;
+                    case 1:  posY --; break;
+                    case 2:  posY ++; break;
+                    case 3:  posX --; break;
+                    case 4:  posX ++; break;
                     default: break;
                 }
-            }
-            else
+
+            Console.SetCursorPosition(posX, posY);
+            switch (nStatus)
             {
-                switch (D)
-                {
-                    case direction.north:   Y--; break;
-                    case direction.south:   Y++; break;
-                    case direction.west:    X--; break;
-                    case direction.east:    X++; break;
-                    default: break;
-                }
+                case 0:
+                Corridor[posX, posY, 0] = 1000;
+                Console.Write("#");
+                // As the droid hit the wall, we need to move the Pen back to it's previous position
+                posX = nPrevPosX;
+                posY = nPrevPosY;
+                break;
+
+                case 1:
+                Corridor[posX, posY, 0] = 1;
+                Console.Write(".");
+                break;
+
+                case 2:
+                Corridor[posX, posY, 0] = 99;
+                Console.Write("O");
+                break;
             }
         }
 
-        static int ReadMap(int X, int Y, direction D)
+        static List<int> ReadMap(int X, int Y)
         {
-            int res = -1;
-            switch (D)
-            {
-                case direction.north:   res = Corridor[X, Y - 1, 1]; break;
-                case direction.south:   res = Corridor[X, Y + 1, 1]; break;
-                case direction.west:    res = Corridor[X - 1, Y, 1]; break;
-                case direction.east:    res = Corridor[X + 1, Y, 1]; break;
-                default: break;
-            }
-            return res;
+            List<int> Map = new List<int>();
+            Map.Add(Corridor[X, Y - 1, 0]);
+            Map.Add(Corridor[X, Y + 1, 0]);
+            Map.Add(Corridor[X - 1, Y, 0]);
+            Map.Add(Corridor[X + 1, Y, 0]);
+            return Map;
         }
 
-        static bool IsDeadEnd (int posX, int posY)
+        static Int64 MoveDroid(int nDirection)
         {
-            if ((ReadMap(posX, posY, direction.north)  + ReadMap(posX, posY, direction.south) + ReadMap(posX, posY, direction.west) + ReadMap(posX, posY, direction.east)) >= 300)
-                return true;
-            else
-                return false;
-        }
-
-        static void LaunchDroid(int posX, int posY, bool bIgnoreDeadEnds)
-        {
-            Int64 nProgrammStep = 0;
-            Int64 nMovemenet = 0;
-            Int64[] res;
-            Int64 nDirection = 1;
-            Int64 nStatus = 0;
-            //int posX = MAX_X / 2;
-            //int posY = MAX_Y / 2;
-            int nPrevposX = posX;
-            int nPrevposY = posY;
-            do
+            // Only four movement commands are understood: north (1), south (2), west (3), and east (4).
+            Int64 nStatus = -1;
+            while (nStatus != 0 && nStatus != 1 && nStatus != 2)
             {
-                // Only four movement commands are understood: north (1), south (2), west (3), and east (4).
-                if (nStatus == 0 || nStatus == 1 || nStatus == 2)
-                {
-                    bool bDebug = false;
-                    if (bDebug)
-                    {
-                        DrawCorridor();
-                        Console.SetCursorPosition(MAX_X / 2, MAX_Y / 2);
-                        Console.Write("S");
-                    }
-
-                    Console.SetCursorPosition(posX, posY);
-                    if (IsDeadEnd(posX, posY) && !bIgnoreDeadEnds)
-                    {
-                        Corridor[posX, posY, 1] = 100;
-                        Corridor[posX, posY, 0] = 0;
-                        Console.Write("#");
-                        nMovemenet-=2;
-                    }
-                    else
-                    {
-                     
-                        Console.Write("*");
-                    }
-
-
-                    List<int> Map = new List<int>();
-                    Map.Add(ReadMap(posX, posY, direction.north));
-                    Map.Add(ReadMap(posX, posY, direction.south));
-                    Map.Add(ReadMap(posX, posY, direction.west));
-                    Map.Add(ReadMap(posX, posY, direction.east));
-
-                    int nValue = Map.Min(n => n);
-                    nDirection = Map.FindIndex(n => n == nValue)+1;
-                    switch (nDirection)
-                    {
-                        case 1: D = direction.north; break;
-                        case 2: D = direction.south; break;
-                        case 3: D = direction.west; break;
-                        case 4: D = direction.east; break;
-                        default: break;
-                    }
-                }
-
                 TheCommand myCommand = new TheCommand(nProgrammStep, ref commands);
-                res = myCommand.ExecuteOneCommand(nProgrammStep, nDirection, commands);
-                nStatus = res[0];
-                nProgrammStep = res[1];
+                Int64[] res = myCommand.ExecuteOneCommand(nProgrammStep, nDirection, commands);
+                nStatus         = res[0];
+                nProgrammStep   = res[1];
 
                 //0: The repair droid hit a wall. Its position has not changed.
                 //1: The repair droid has moved one step in the requested direction.
                 //2: The repair droid has moved one step in the requested direction; its new position is the location of the oxygen system.
+            }
 
-                if (nStatus == 0)
+
+            return nStatus;
+        }
+
+        static void LaunchDroid(int posX, int posY)
+        {
+            int[] nOxygenX_Y = { 0, 0 }; 
+            Int64 nStatus = -1;
+            int nDirection = 0;
+            int nMovemenet = 0;
+            while (true) 
+            {
+                List<int> Map = new List<int>();
+                Map = ReadMap(posX,posY);
+                int nDeadEnd = 0; 
+                foreach (int n in Map)
+                    nDeadEnd += n;
+
+                // Wall     = 1000
+                // Deadend  = 900
+                // if the sum of "n" >= 2700 it means there is only one exit (deadend)
+                // wall + wall + wall = 3000
+                // deadend * 3 = 2700
+                if (nDeadEnd >= 2700) 
                 {
-                    if (nMovemenet > 155)
-                        nStatus = 0;
-
-
-                    MoveTheRobot(ref posX, ref posY, D);
-                    Corridor[posX, posY, 0] = 0;
-                    Corridor[posX, posY, 1] = 100; 
-                    MoveTheRobot(ref posX, ref posY, D, true);
-
+                    Corridor[posX, posY, 0] = 900; 
+                    nMovemenet -= 2;
                 }
+
+                if (nDeadEnd >= 3600) // surrounded by deadends or||and walls
+                {
+                    Console.SetCursorPosition(0, 53);
+                    break;
+                }
+
+
+                nDirection = Map.FindIndex(n => n == Map.Min(n => n)) + 1;
+
+                nStatus = MoveDroid(nDirection);
+                WriteMap(ref posX, ref posY, nDirection, nStatus);
+
                 if (nStatus == 1)
-                {
-                    MoveTheRobot(ref posX, ref posY, D);
-                    Corridor[posX, posY, 0] = 1;
-                    Corridor[posX, posY, 1] = 1;
                     nMovemenet++;
-                }
+
                 if (nStatus == 2)
                 {
-                    MoveTheRobot(ref posX, ref posY, D);
-                    Corridor[posX, posY, 0] = 2;
-                    Corridor[posX, posY, 1] = 0;
-                    Console.SetCursorPosition(posX, posY);
-                    Console.Write("O");
                     nMovemenet++;
-
                     Console.SetCursorPosition(0, 50);
-                    Console.WriteLine("Oxygen: [{0}:{1}]   - Steps:{2} ", posX, posY, nMovemenet);
-
-                    break;
-
-                }
-
-                if (posX == MAX_X / 2 && posY == MAX_Y / 2)
-                {
-                    Console.SetCursorPosition(posX, posY);
-                    Console.Write("S");
-
-                    Console.SetCursorPosition(0, 49);
-                    Console.WriteLine("Start point: [{0}:{1}]   - Steps:{2} ", posX, posY, nMovemenet);
-                    nMovemenet = 0;
+                    Console.WriteLine("Oxygen: [{0}:{1}] Steps = {2}", posX, posY, nMovemenet);
                 }
 
             }
-            while (true);
         }
     }
 }
