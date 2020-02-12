@@ -34,42 +34,39 @@ namespace Puzzle16
                 answer += nLine[i].ToString();
 
             Console.WriteLine();
-            Console.WriteLine("Answer: {0}", answer);
+            Console.WriteLine("Part One - Answer: {0}", answer);
 
 
             //Part Two
-            line = "123";
+            const int MULTI_10K = 10000;
+            //line = "03081770884921959731165446850517";
+            Int64 nOffset = int.Parse(line.Substring(0, 7));
 
-                string lineX10000 = "";
-                for (int i = 0; i < 4; i++)
-                    lineX10000 += line;
+            int[] nLineShortP2 = new int[line.Length];
+            for (int i = 0; i < line.Length; i++)
+                nLineShortP2[i] = int.Parse(line[i].ToString());
 
-                int[] nLine2 = new int[lineX10000.Length];
-                for (int i = 0; i < lineX10000.Length; i++)
-                    nLine2[i] = int.Parse(lineX10000[i].ToString());
+            int nLine10KLen = nLineShortP2.Length * MULTI_10K;
+            int[] nLine10k = new int[nLine10KLen];
 
-                int nOffset = int.Parse(lineX10000.Substring(0, 7));
+            for (int i = 0; i < MULTI_10K; i++)
+                Array.Copy(nLineShortP2,0,nLine10k, line.Length*i,line.Length);
 
-            DateTime time = DateTime.Now;
+            //DateTime time = DateTime.Now;
             for (int i = 0; i < PHASES_COUNT; i++)
             {
-                nLine2 = RunPhase(nLine2);
-                //Console.WriteLine("Round {0} = {1} Min {2} Sec", i, (DateTime.Now - time).Minutes, (DateTime.Now - time).Seconds);
-                string a = "";
-                for (int x = 0; x < 12; x++)
-                    a += nLine2[x];
-
-                Console.WriteLine(a);
+                int aa = 0;
+                answer = "";
+                for (int x = nLine10KLen - 1 ; x >= nOffset; x--)
+                {
+                    aa = (aa + nLine10k[x]) % 10;
+                    nLine10k[x] = aa;
+                    if (x < nOffset + 8)
+                        answer = aa.ToString() + answer;
+                }
             }
 
-                //answer = "";
-                //for (int i = 0; i < 8; i++)
-                // answer += nLine2[nOffset + i].ToString();
-
-                ////for (int i = 0; i < 8; i++)
-                // //answer += nLine2[i].ToString();
-
-                //Console.WriteLine("Answer: {0}", answer);
+                Console.WriteLine("Part Two - Answer: {0}", answer);
             
         }
 
