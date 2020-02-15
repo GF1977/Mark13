@@ -15,6 +15,7 @@ namespace Puzzle17
     {
         static Int64 nProgrammStep = 0;
         static List<Int64> commands;
+        static List<Int64> commands2;
         const int ROOM_SIZE = 50;
         static int nRoomDimensionX = 0;
         static int nRoomDimensionY = 0;
@@ -30,9 +31,10 @@ namespace Puzzle17
             foreach (string word in words)
                 commands_vanile.Add(int.Parse(word));
 
+            for (int i = 0; i < 10000; i++)
+                commands_vanile.Add(0);
+
             commands = new List<Int64>(commands_vanile);
-            for(int i = 0;i<10000;i++)
-                commands.Add(0);
 
             // Part One
             Console.SetWindowSize(60, 60);
@@ -65,7 +67,7 @@ namespace Puzzle17
                     char C = (char)nStatus;
                     Console.Write(C.ToString());
                     Room[posX, posY] = nStatus;
-                    if (C=='^')
+                    if (C == '^')
                     {
                         nRobotPosX = posX;
                         nRobotPosY = posY;
@@ -85,19 +87,21 @@ namespace Puzzle17
             for (int x = 0; x < ROOM_SIZE; x++)
                 for (int y = 0; y < ROOM_SIZE; y++)
                 {
-                    if(Room[x, y] == 35)
-                    if (IsIntersection(Room, x, y))
-                    {
-                        Console.SetCursorPosition(x, y);
-                        Console.WriteLine("O");
-                        nCalibration += x * y;
-                    }
+                    if (Room[x, y] == 35)
+                        if (IsIntersection(Room, x, y))
+                        {
+                            Console.SetCursorPosition(x, y);
+                            Console.WriteLine("O");
+                            nCalibration += x * y;
+                        }
                 }
 
             Console.SetCursorPosition(0, 50);
-            Console.WriteLine("Part One - Answer: {0}",nCalibration);
+            Console.WriteLine("Part One - Answer: {0}", nCalibration);
 
             // Part Two:
+            Console.WriteLine("");
+            Console.WriteLine("--Part Two--");
             string sDirection = "";
             string sTurn = "";
             string sCommands = "";
@@ -143,7 +147,7 @@ namespace Puzzle17
                 sCommands += nStep.ToString();
                 sCommands += (",");
 
-                Console.Write("{0},{1}, ", sTurn, nStep);
+              //  Console.Write("{0},{1}, ", sTurn, nStep);
             }
 
             string sFunA = "";
@@ -162,18 +166,27 @@ namespace Puzzle17
             int[] nFunctionsASCII = new int[1000];
             int nPos = 0;
 
-            nPos = ConvertToASCII(sMainFun, ref nFunctionsASCII, nPos);
-            nPos = ConvertToASCII(sFunA, ref nFunctionsASCII, nPos);
-            nPos = ConvertToASCII(sFunB, ref nFunctionsASCII, nPos);
-            nPos = ConvertToASCII(sFunC, ref nFunctionsASCII, nPos);
+            nPos =  ConvertToASCII(sMainFun, ref nFunctionsASCII, nPos);
+            nPos =  ConvertToASCII(sFunA, ref nFunctionsASCII, nPos);
+            nPos =  ConvertToASCII(sFunB, ref nFunctionsASCII, nPos);
+                    ConvertToASCII(sFunC, ref nFunctionsASCII, nPos);
 
-
-            commands[0] = 2;
+            commands2 = new List<Int64>(commands_vanile);
+            commands2[0] = 2;
             int X = 0;
             do
             {
-                TheCommand myCommand = new TheCommand(nProgrammStep, ref commands);
-                Int64[] res = myCommand.ExecuteOneCommand(nProgrammStep, 0, commands);
+                int nInputparameter = 0;
+                TheCommand myCommand = new TheCommand(nProgrammStep, ref commands2);
+                if (commands2.ElementAt((int)nProgrammStep) == 3)
+                {
+                    nInputparameter = (int)Console.ReadKey().KeyChar;
+                    if (nInputparameter == 13) nInputparameter = 10;
+                    //nInputparameter = nFunctionsASCII[X];
+                    //X++;
+                }
+
+                Int64[] res = myCommand.ExecuteOneCommand(nProgrammStep, nInputparameter, commands2);
                 nStatus = res[0];
                 nProgrammStep = res[1];
 
@@ -186,12 +199,12 @@ namespace Puzzle17
                 {
                     char C = (char)nStatus;
                     Console.Write(C.ToString());
-
                 }
 
 
             }
-            while (true);
+            while (nProgrammStep != 0);
+            int N = 124;
         }
 
         private static int ConvertToASCII (string Function, ref int[] nFunctionsASCII, int nIndex)
@@ -199,9 +212,9 @@ namespace Puzzle17
             foreach (char C in Function)
                 nFunctionsASCII[nIndex++] = (int)C;
 
-            nFunctionsASCII[nIndex] = 10;
+            nFunctionsASCII[nIndex-1] = 10;
 
-            return nIndex+1;
+            return nIndex;
         }
 
         private static string GetSubFunction(ref string sTemp)
