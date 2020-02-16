@@ -31,7 +31,7 @@ namespace Puzzle17
             foreach (string word in words)
                 commands_vanile.Add(int.Parse(word));
 
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 8000; i++)
                 commands_vanile.Add(0);
 
             commands = new List<Int64>(commands_vanile);
@@ -174,16 +174,20 @@ namespace Puzzle17
             commands2 = new List<Int64>(commands_vanile);
             commands2[0] = 2;
             int X = 0;
+            int nInputparameter = 0;
             do
             {
-                int nInputparameter = 0;
+                if (nProgrammStep == 989)
+                    nProgrammStep = 989;
                 TheCommand myCommand = new TheCommand(nProgrammStep, ref commands2);
-                if (commands2.ElementAt((int)nProgrammStep) == 3)
+                if (myCommand.GetCommand() == 3)
                 {
-                    nInputparameter = (int)Console.ReadKey().KeyChar;
-                    if (nInputparameter == 13) nInputparameter = 10;
-                    //nInputparameter = nFunctionsASCII[X];
-                    //X++;
+                    //nInputparameter = (int)Console.ReadKey().KeyChar;
+                    //if (nInputparameter == 13) nInputparameter = 10;
+                    
+                    nInputparameter = nFunctionsASCII[X++];
+                    Console.Write((char)nInputparameter);
+                    
                 }
 
                 Int64[] res = myCommand.ExecuteOneCommand(nProgrammStep, nInputparameter, commands2);
@@ -199,12 +203,13 @@ namespace Puzzle17
                 {
                     char C = (char)nStatus;
                     Console.Write(C.ToString());
+                    if (C == ':')
+                        C = ':';
                 }
 
 
             }
             while (nProgrammStep != 0);
-            int N = 124;
         }
 
         private static int ConvertToASCII (string Function, ref int[] nFunctionsASCII, int nIndex)
