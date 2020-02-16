@@ -105,7 +105,7 @@ namespace MyClasses
             relative_base_offset += ArgOne.argValue;
         }
 
-        private Int64 GetCommand() { return command; }
+        public Int64 GetCommand() { return command; }
         private Int64 GetStep() { return Step; }
         private Int64 ReadMemory(Int64 mAddress, Int64 mode, ref List<Int64> words)
         {
