@@ -35,9 +35,7 @@ namespace MyClasses
                 ArgOne.argValue = ReadMemory(words[(int)(nStep + 1)], ArgOne.argMode, ref words);
 
             if (command == 3)
-            {
-                ArgOne.argValue = ReadMemory(nStep + 1, ArgOne.argMode, ref words);
-            }
+               ArgOne.argValue = ReadMemory(nStep + 1, 0 , ref words); // argValue is always the 2nd byte of Input command
 
             if (GetArgNumber(command) >= 2)
             {
