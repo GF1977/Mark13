@@ -16,13 +16,15 @@ namespace Puzzle17
         static Int64 nProgrammStep = 0;
         static List<Int64> commands;
         static List<Int64> commands2;
-        const int ROOM_SIZE = 50;
-        static int nRoomDimensionX = 0;
+        const int ROOM_SIZE = 50; // it is holistic value, need to adjust if the real room is bigger
+        static int[,] Room = new int[ROOM_SIZE, ROOM_SIZE];
+
+        static int nRoomDimensionX = 0; // it will be the real dimension
         static int nRoomDimensionY = 0;
 
         static void Main(string[] args)
         {
-
+            // Initialization
             StreamReader file = new StreamReader(@".\data.txt");
             string line = file.ReadLine();
             string[] words = line.Split(',');
@@ -39,15 +41,14 @@ namespace Puzzle17
             // Part One
             Console.SetWindowSize(60, 60);
 
-            Int64[,] Room = new Int64[ROOM_SIZE, ROOM_SIZE];
+            Int64 nStatus = -1; 
+            int nRobotnMapPosX = 0; 
+            int nRobotnMapPosY = 0;
+            string sRobotDirection = "N"; // ^ means North,  > East .. etc
 
-            Int64 nStatus = -1;
-            int nRobotPosX = 0;
-            int nRobotPosY = 0;
-            string sRobotDirection = "N";
-
-            int posX = 0;
-            int posY = 0;
+            int nMapPosX = 0;
+            int nMapPosY = 0;
+            // Drawing the map, check the room dimension, define the Bot coordinates
             do
             {
                 TheCommand myCommand = new TheCommand(nProgrammStep, ref commands);
@@ -58,37 +59,32 @@ namespace Puzzle17
                 if (nStatus == 10)
                 {
                     Console.WriteLine("");
-                    posY++;
-                    posX = 0;
-                    nRoomDimensionY = Math.Max(nRoomDimensionY, posY);
+                    nMapPosY++;   nMapPosX = 0; // Move to the next line
+                    nRoomDimensionY = Math.Max(nRoomDimensionY, nMapPosY);
                 }
                 else if (nStatus > 20 && nStatus < 128)
                 {
-                    char C = (char)nStatus;
-                    Console.Write(C.ToString());
-                    Room[posX, posY] = nStatus;
-                    if (C == '^')
+                    Console.Write((char)nStatus);
+                    Room[nMapPosX, nMapPosY] = (int)nStatus;
+                    if ((char)nStatus == '^')
                     {
-                        nRobotPosX = posX;
-                        nRobotPosY = posY;
+                        nRobotnMapPosX = nMapPosX;
+                        nRobotnMapPosY = nMapPosY;
                     }
-                    posX++;
-                    nRoomDimensionX = Math.Max(nRoomDimensionX, posX);
+                    nMapPosX++;
+                    nRoomDimensionX = Math.Max(nRoomDimensionX, nMapPosX);
                 }
-
-
             }
             while (nProgrammStep != 0);
 
             Console.WriteLine("");
+            int nCalibration = 0; 
 
-            int nCalibration = 0;
-
-            for (int x = 0; x < ROOM_SIZE; x++)
-                for (int y = 0; y < ROOM_SIZE; y++)
+            for (int x = 0; x < nRoomDimensionX; x++)
+                for (int y = 0; y < nRoomDimensionY; y++)
                 {
                     if (Room[x, y] == 35)
-                        if (IsIntersection(Room, x, y))
+                        if (IsIntersection(x, y))
                         {
                             Console.SetCursorPosition(x, y);
                             Console.WriteLine("O");
@@ -102,87 +98,75 @@ namespace Puzzle17
             // Part Two:
             Console.WriteLine("");
             Console.WriteLine("--Part Two--");
-            string sDirection = "";
-            string sTurn = "";
-            string sCommands = "";
+            string sDirection = ""; // direction of the road (N, S, W, E)
+            string sTurn = "";     // where to turn (R,L)
+            string sCommands = ""; // set of commands for the Bot
             Int64 nPartTwoResult = 0;
+
+            // generating the movemenet command line "sCommands"
             while (true)
             {
-                int nXstep = 0;
-                int nYstep = 0;
-                sDirection = WhereTheRoad(Room, nRobotPosX, nRobotPosY, sDirection);
-                if (sDirection == "")
-                    break;
+                int nXstep = 0;  int nYstep = 0; // Delta -1 or 0 or +1 , depends on the direction
+                int nStep = 0; // number of steps to do in one direction, before the next turn
+
+                sDirection = WhereTheRoad(nRobotnMapPosX, nRobotnMapPosY, sDirection);
+                if (sDirection == "")  break;
 
                 switch (sDirection)
                 {
-                    case "N": nYstep = -1; if (sRobotDirection == "W") sTurn = "R"; else sTurn = "L"; break;
-                    case "S": nYstep = 1; if (sRobotDirection == "W") sTurn = "L"; else sTurn = "R"; break;
-                    case "W": nXstep = -1; if (sRobotDirection == "N") sTurn = "L"; else sTurn = "R"; break;
-                    case "E": nXstep = 1; if (sRobotDirection == "N") sTurn = "R"; else sTurn = "L"; break;
+                    case "N": nYstep = -1; sTurn = sRobotDirection == "W" ? "R" : "L"; break;
+                    case "S": nYstep =  1; sTurn = sRobotDirection == "W" ? "L" : "R"; break;
+                    case "W": nXstep = -1; sTurn = sRobotDirection == "N" ? "L" : "R"; break;
+                    case "E": nXstep =  1; sTurn = sRobotDirection == "N" ? "R" : "L"; break;
                     default: break;
                 }
+                sRobotDirection = sDirection; // to orient the Bot in the right direction
 
-
-                sRobotDirection = sDirection;
-
-                int nStep = 0;
-                while (true)
+                // counting the number of steps in the given direction                    
+                while (ReadRoom(nRobotnMapPosX + nXstep, nRobotnMapPosY + nYstep) == 35)
                 {
-                    if (isInRoom(nRobotPosX + nXstep, nRobotPosY + nYstep))
-                        if (Room[nRobotPosX + nXstep, nRobotPosY + nYstep] == 35)
-                        {
-                            nRobotPosX += nXstep;
-                            nRobotPosY += nYstep;
+                            nRobotnMapPosX += nXstep;
+                            nRobotnMapPosY += nYstep;
                             nStep++;
-                        }
-                        else
-                            break;
-                    else
-                        break;
                 }
-
-                sCommands += (sTurn);
-                sCommands += (",");
-                sCommands += nStep.ToString();
-                sCommands += (",");
-
-                //  Console.Write("{0},{1}, ", sTurn, nStep);
+                sCommands += sTurn + "," + nStep.ToString() + (",");
             }
 
-            string sFunA = "";
-            string sFunB = "";
-            string sFunC = "";
+            string sFunctionA = "";
+            string sFunctionB = "";
+            string sFunctionC = "";
 
-            string sMainFun = GetMainFunction(sCommands, ref sFunA, ref sFunB, ref sFunC);
+            string sMainFun = GetMainFunction(sCommands, ref sFunctionA, ref sFunctionB, ref sFunctionC);
 
             Console.SetCursorPosition(0, 54);
             Console.WriteLine("Main function: {0}", sMainFun);
-            Console.WriteLine("Function A: {0}", sFunA);
-            Console.WriteLine("Function B: {0}", sFunB);
-            Console.WriteLine("Function C: {0}", sFunC);
+            Console.WriteLine("Function A: {0}", sFunctionA);
+            Console.WriteLine("Function B: {0}", sFunctionB);
+            Console.WriteLine("Function C: {0}", sFunctionC);
 
             // convert the functions to the command array
             int[] nFunctionsASCII = new int[1000];
+            int nInputParameterPosition = 0;
+            
             int nPos = 0;
+            nPos = ConvertToASCII(sMainFun,   ref nFunctionsASCII, nPos);
+            nPos = ConvertToASCII(sFunctionA, ref nFunctionsASCII, nPos);
+            nPos = ConvertToASCII(sFunctionB, ref nFunctionsASCII, nPos);
+            nPos = ConvertToASCII(sFunctionC, ref nFunctionsASCII, nPos);
 
-            nPos = ConvertToASCII(sMainFun, ref nFunctionsASCII, nPos);
-            nPos = ConvertToASCII(sFunA, ref nFunctionsASCII, nPos);
-            nPos = ConvertToASCII(sFunB, ref nFunctionsASCII, nPos);
-            nPos = ConvertToASCII(sFunC, ref nFunctionsASCII, nPos);
-            nFunctionsASCII[nPos] = (char)'n';
-            nFunctionsASCII[nPos + 1] = 10;
+            nFunctionsASCII[nPos] = (char)'n'; // no video feed
+            nFunctionsASCII[nPos + 1] = 10; // end the line
 
+            // now we are ready to launch the Bot
             commands2 = new List<Int64>(commands_vanile);
             commands2[0] = 2;
-            int X = 0;
             int nInputparameter = 0;
             do
             {
                 TheCommand myCommand = new TheCommand(nProgrammStep, ref commands2);
                 if (myCommand.GetCommand() == 3)
                 {
-                    nInputparameter = nFunctionsASCII[X++];
+                    nInputparameter = nFunctionsASCII[nInputParameterPosition++];
                     Console.Write((char)nInputparameter);
                 }
 
@@ -192,20 +176,15 @@ namespace Puzzle17
                 nProgrammStep = res[1];
 
                 if (nStatus == 10)
-                {
                     Console.WriteLine("");
-                }
+
                 else if (nStatus > 20 && nStatus < 128)
-                {
-                    char C = (char)nStatus;
-                    Console.Write(C.ToString());
-                }
+                    Console.Write((char)nStatus);
             }
             while (nProgrammStep != 0);
+           
             Console.WriteLine("Part two answer: {0}", nPartTwoResult);
         }
-
-
             
         private static int ConvertToASCII (string Function, ref int[] nFunctionsASCII, int nIndex)
         {
@@ -239,59 +218,47 @@ namespace Puzzle17
             }
             return sRes;
         }
-        private static string GetMainFunction(string sCommands, ref string sFunA, ref string sFunB, ref string sFunC)
+        private static string GetMainFunction(string sCommands, ref string sFunctionA, ref string sFunctionB, ref string sFunC)
         {
             string sTemp = sCommands;
 
-             sFunA = GetSubFunction(ref sTemp);
-             sFunB = GetSubFunction(ref sTemp);
+             sFunctionA = GetSubFunction(ref sTemp);
+             sFunctionB = GetSubFunction(ref sTemp);
              sFunC = GetSubFunction(ref sTemp);
 
-            sCommands = sCommands.Replace(sFunA, "A,");
-            sCommands = sCommands.Replace(sFunB, "B,");
+            sCommands = sCommands.Replace(sFunctionA, "A,");
+            sCommands = sCommands.Replace(sFunctionB, "B,");
             sCommands = sCommands.Replace(sFunC, "C,");
 
             return sCommands;
         }
 
-        private static bool isInRoom(int x, int y)
+        private static int ReadRoom(int x, int y)
         {
             if (x >= 0 && x < nRoomDimensionX && y >= 0 && y < nRoomDimensionY)
-                return true;
+                return Room[x,y];
             else
-                return false;
+                return -1;
         }
 
-        private static string WhereTheRoad(long[,] room, int x, int y , string sDirection)
+        private static string WhereTheRoad( int x, int y , string sDirection)
         {
             string res = "";
 
-                if (x>0 && room[x - 1, y] == 35 && sDirection != "E")
-                    res = "W";
-                else if (room[x + 1, y] == 35 && sDirection != "W")
-                    res = "E";
-                else if (y > 0 && room[x, y - 1] == 35 && sDirection != "S")
-                    res = "N";
-                else if (room[x, y + 1] == 35 && sDirection != "N")
-                    res = "S";
+                if      (ReadRoom(x - 1, y) == 35 && sDirection != "E")                    res = "W";
+                else if (ReadRoom(x + 1, y) == 35 && sDirection != "W")                    res = "E";
+                else if (ReadRoom(x, y - 1) == 35 && sDirection != "S")                    res = "N";
+                else if (ReadRoom(x, y + 1) == 35 && sDirection != "N")                    res = "S";
 
             return res;
         }
 
-        private static bool IsIntersection(long[,] room, int x, int y)
+        private static bool IsIntersection( int x, int y)
         {
-            bool res = false;
-            try
-            {
-                if (room[x - 1, y] == 35 && room[x + 1, y] == 35 && room[x, y - 1] == 35 && room[x, y + 1] == 35)
-                    res = true;
-            }
-            catch
-            {
+            if (ReadRoom(x - 1, y) == 35 && ReadRoom(x + 1, y) == 35 && ReadRoom(x, y - 1) == 35 && ReadRoom(x, y + 1) == 35)
+                return true;
+            else
                 return false;
-            }
-
-            return res;
         }
     }
 }
