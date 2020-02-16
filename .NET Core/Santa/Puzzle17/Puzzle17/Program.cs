@@ -105,7 +105,7 @@ namespace Puzzle17
             string sDirection = "";
             string sTurn = "";
             string sCommands = "";
-
+            Int64 nPartTwoResult = 0;
             while (true)
             {
                 int nXstep = 0;
@@ -117,9 +117,9 @@ namespace Puzzle17
                 switch (sDirection)
                 {
                     case "N": nYstep = -1; if (sRobotDirection == "W") sTurn = "R"; else sTurn = "L"; break;
-                    case "S": nYstep =  1; if (sRobotDirection == "W") sTurn = "L"; else sTurn = "R"; break;
+                    case "S": nYstep = 1; if (sRobotDirection == "W") sTurn = "L"; else sTurn = "R"; break;
                     case "W": nXstep = -1; if (sRobotDirection == "N") sTurn = "L"; else sTurn = "R"; break;
-                    case "E": nXstep =  1; if (sRobotDirection == "N") sTurn = "R"; else sTurn = "L"; break;
+                    case "E": nXstep = 1; if (sRobotDirection == "N") sTurn = "R"; else sTurn = "L"; break;
                     default: break;
                 }
 
@@ -147,7 +147,7 @@ namespace Puzzle17
                 sCommands += nStep.ToString();
                 sCommands += (",");
 
-              //  Console.Write("{0},{1}, ", sTurn, nStep);
+                //  Console.Write("{0},{1}, ", sTurn, nStep);
             }
 
             string sFunA = "";
@@ -155,7 +155,7 @@ namespace Puzzle17
             string sFunC = "";
 
             string sMainFun = GetMainFunction(sCommands, ref sFunA, ref sFunB, ref sFunC);
-            
+
             Console.SetCursorPosition(0, 54);
             Console.WriteLine("Main function: {0}", sMainFun);
             Console.WriteLine("Function A: {0}", sFunA);
@@ -166,10 +166,12 @@ namespace Puzzle17
             int[] nFunctionsASCII = new int[1000];
             int nPos = 0;
 
-            nPos =  ConvertToASCII(sMainFun, ref nFunctionsASCII, nPos);
-            nPos =  ConvertToASCII(sFunA, ref nFunctionsASCII, nPos);
-            nPos =  ConvertToASCII(sFunB, ref nFunctionsASCII, nPos);
-                    ConvertToASCII(sFunC, ref nFunctionsASCII, nPos);
+            nPos = ConvertToASCII(sMainFun, ref nFunctionsASCII, nPos);
+            nPos = ConvertToASCII(sFunA, ref nFunctionsASCII, nPos);
+            nPos = ConvertToASCII(sFunB, ref nFunctionsASCII, nPos);
+            nPos = ConvertToASCII(sFunC, ref nFunctionsASCII, nPos);
+            nFunctionsASCII[nPos] = (char)'n';
+            nFunctionsASCII[nPos + 1] = 10;
 
             commands2 = new List<Int64>(commands_vanile);
             commands2[0] = 2;
@@ -177,48 +179,40 @@ namespace Puzzle17
             int nInputparameter = 0;
             do
             {
-                if (nProgrammStep == 989)
-                    nProgrammStep = 989;
                 TheCommand myCommand = new TheCommand(nProgrammStep, ref commands2);
                 if (myCommand.GetCommand() == 3)
                 {
-                    //nInputparameter = (int)Console.ReadKey().KeyChar;
-                    //if (nInputparameter == 13) nInputparameter = 10;
-                    
                     nInputparameter = nFunctionsASCII[X++];
                     Console.Write((char)nInputparameter);
-                    
                 }
 
                 Int64[] res = myCommand.ExecuteOneCommand(nProgrammStep, nInputparameter, commands2);
                 nStatus = res[0];
+                if (nStatus > 0) nPartTwoResult = nStatus;
                 nProgrammStep = res[1];
 
                 if (nStatus == 10)
                 {
                     Console.WriteLine("");
-
                 }
                 else if (nStatus > 20 && nStatus < 128)
                 {
                     char C = (char)nStatus;
                     Console.Write(C.ToString());
-                    if (C == ':')
-                        C = ':';
                 }
-
-
             }
             while (nProgrammStep != 0);
+            Console.WriteLine("Part two answer: {0}", nPartTwoResult);
         }
 
+
+            
         private static int ConvertToASCII (string Function, ref int[] nFunctionsASCII, int nIndex)
         {
             foreach (char C in Function)
                 nFunctionsASCII[nIndex++] = (int)C;
 
             nFunctionsASCII[nIndex-1] = 10;
-
             return nIndex;
         }
 
