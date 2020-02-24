@@ -15,48 +15,32 @@ namespace Puzzle18
         }
     }
 
-    struct Crossroads
+    struct Object
     {
         public int nID;
         public int X;
         public int Y;
         public Dictionary<string, int> Connection;
         public bool[] bExplored;
+        public char cValue;
 
-        public Crossroads(int x, int y)
+        public Object(int X, int Y, char cValue)
         {
             nID = Counter.New;
-            X = x;
-            Y = y;
+            this.X = X;
+            this.Y = Y;
             Connection = new Dictionary<string, int>();
             bExplored = new bool[4] { false, false, false, false };
-        }
-    }
-
-    struct Object
-    {
-        public int x;
-        public int y;
-        public char cValue;
-        public List<Crossroads> Nodes;
-
-        public Object(int x, int y, char cValue)
-        {
-            this.x = x;
-            this.y = y;
             this.cValue = cValue;
-            Nodes = new List<Crossroads>();
         }
     }
-
 
     class Program
     {
         static int nRoomDimensionX;
         static int nRoomDimensionY;
         static char[,] Labirint;
-        static List<Object> RoomsAndKeys = new List<Object>();
-        static List<Crossroads> Nodes = new List<Crossroads>();
+        static List<Object> Nodes = new List<Object>();
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
         {
@@ -77,7 +61,7 @@ namespace Puzzle18
                     Labirint[x, y] = char.Parse(myInput[y].Substring(x, 1));
 
                     if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
-                        RoomsAndKeys.Add(new Object(x, y, Labirint[x, y]));
+                        Nodes.Add(new Object(x, y, Labirint[x, y]));
                 }
 
             for (int y = 0; y < nRoomDimensionY; y++)
@@ -87,10 +71,19 @@ namespace Puzzle18
                 {
                     if (IsIntersection(x, y))
                     {
-                        Console.ForegroundColor = System.ConsoleColor.Red;
-                        Console.Write("+");
+                        if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
+                        {
+                            Console.ForegroundColor = System.ConsoleColor.Red;
+                            Console.Write(Labirint[x, y].ToString());
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = System.ConsoleColor.Yellow;
+                            Console.Write("+");
+                        }
+
                         Console.ForegroundColor = System.ConsoleColor.Gray;
-                        Crossroads C = new Crossroads(x,y);
+                        Object C = new Object(x,y,'.');
                         Nodes.Add(C);
                     }
                     else
@@ -100,7 +93,7 @@ namespace Puzzle18
     
             for(int i = 0; i < Nodes.Count;i++)
             {
-                Crossroads Ctemp = Nodes[i];
+                Object Ctemp = Nodes[i];
                 ExploreNode(ref Ctemp);
                 Nodes[i] = Ctemp;
             }
@@ -128,7 +121,7 @@ namespace Puzzle18
             return cNewDirection;
         }
 
-        private static void ExploreNode (ref Crossroads C)
+        private static void ExploreNode (ref Object C)
         {
             if (ReadRoom(C.X - 1, C.Y) != '#') C.bExplored[0] = false; else {C.bExplored[0] = true; C.Connection.Add("W", 0); };
             if (ReadRoom(C.X + 1, C.Y) != '#') C.bExplored[1] = false; else {C.bExplored[1] = true; C.Connection.Add("E", 0); };
@@ -185,12 +178,12 @@ namespace Puzzle18
         private static bool IsIntersection(int x, int y)
         {
             int n = 0;
-            if (ReadRoom(x - 1, y) == '.') n++;
-            if (ReadRoom(x + 1, y) == '.') n++;
-            if (ReadRoom(x, y - 1) == '.') n++;
-            if (ReadRoom(x, y + 1) == '.') n++;
+            if (ReadRoom(x - 1, y) != '#') n++;
+            if (ReadRoom(x + 1, y) != '#') n++;
+            if (ReadRoom(x, y - 1) != '#') n++;
+            if (ReadRoom(x, y + 1) != '#') n++;
                 
-            if(n>=3 & ReadRoom(x,y) == '.')
+            if(n>=3 & ReadRoom(x,y) != '#')
                 return true;
             else
                 return false;
