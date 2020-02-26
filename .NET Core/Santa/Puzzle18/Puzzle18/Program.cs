@@ -23,6 +23,7 @@ namespace Puzzle18
         public Dictionary<string, int> Connection;
         public bool[] bExplored;
         public char cValue;
+        public bool bOpened;
 
         public Object(int X, int Y, char cValue)
         {
@@ -32,6 +33,11 @@ namespace Puzzle18
             Connection = new Dictionary<string, int>();
             bExplored = new bool[4] { false, false, false, false };
             this.cValue = cValue;
+            
+            if (cValue >= 65 && cValue <= 90)
+                bOpened = false;
+            else
+                bOpened = true;
         }
     }
 
@@ -41,6 +47,7 @@ namespace Puzzle18
         static int nRoomDimensionY;
         static char[,] Labirint;
         static List<Object> Nodes = new List<Object>();
+        
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
         {
@@ -54,6 +61,8 @@ namespace Puzzle18
             nRoomDimensionY = myInput.Count; 
 
             Labirint = new char[nRoomDimensionX, nRoomDimensionY];
+            Nodes.Add(new Object()); // dummy object into [0]
+
 
             for (int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
@@ -91,13 +100,54 @@ namespace Puzzle18
                 }
             }
     
-            for(int i = 0; i < Nodes.Count;i++)
+            for(int i = 1; i < Nodes.Count;i++)
             {
                 Object Ctemp = Nodes[i];
                 ExploreNode(ref Ctemp);
                 Nodes[i] = Ctemp;
             }
 
+            Console.WriteLine("");
+            List<Object> Res = new List<Object>();
+            Res = GetRoute(Nodes[1], Nodes[10]);
+        }
+
+        private static List<Object> GetRoute(Object Start, Object End)
+        {
+            List <Object> Res = new List<Object>();
+            bool[] bVisitedNodes = new bool[10000];
+            //for(int i = 0; i < 10000;i++)
+            //    bVisitedNodes[i] = false;
+
+            bVisitedNodes[Start.nID] = true;
+            Console.Write("Start {0} ->", Start.nID);
+
+            Object NextNode = Start;
+            int nCurrentNode = Start.nID;
+            while (NextNode.nID != End.nID && NextNode.nID != 0)
+            {
+                int nNextNode    = int.MaxValue;
+                foreach (KeyValuePair<string, int> D in NextNode.Connection)
+                {
+                    if (D.Value < nNextNode && D.Value != nCurrentNode && D.Value > 0 && !bVisitedNodes[D.Value])
+                        nNextNode = D.Value;
+                }
+                NextNode = GetNodebyID(nNextNode);
+                bVisitedNodes[NextNode.nID] = true;
+                Console.Write(" {0} ->", NextNode.nID);
+            }
+            
+            return Res;
+        }
+
+        private static Object GetNodebyID(int nID)
+        {
+            Object res = new Object();
+            foreach (Object N in Nodes)
+                    if (N.nID == nID)
+                        res = N;
+
+            return res;
         }
 
         private static char ReadRoom(int x, int y)
@@ -155,10 +205,10 @@ namespace Puzzle18
                     {
                         C.bExplored[i] = true;
                         C.Connection.Add(Directions[i].ToString(), 0);
-                        break;
+                        //break;
                     }
 
-                    if(IsIntersection(x, y))
+                    if(IsIntersection(x, y) || (ReadRoom(x,y)!= '#' && ReadRoom(x,y) != '.'))
                     {
                         C.bExplored[i] = true;
                         int nNextNode = Nodes.Find(node => node.X == x && node.Y == y).nID;
@@ -167,7 +217,7 @@ namespace Puzzle18
 
                     }
                 }
-                while (true);
+                while (cDirection != '*');
 
 
             }
