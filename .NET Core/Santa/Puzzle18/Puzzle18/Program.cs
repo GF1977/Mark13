@@ -8,14 +8,14 @@ namespace Puzzle18
 
     public static class Counter
     {
-    private static int counter = 1;
+    private static int counter = 0;
     public static int New
         {
             get { return counter++; }
         }
     }
 
-    struct Object
+    public class Object
     {
         public int nID;
         public int X;
@@ -24,21 +24,66 @@ namespace Puzzle18
         public bool[] bExplored;
         public char cValue;
         public bool bOpened;
+        private int  nRouteCost;
+        private int  nClosestID;
+        public bool bVisited;
 
-        public Object(int X, int Y, char cValue)
+
+        public Object()
         {
             nID = Counter.New;
-            this.X = X;
-            this.Y = Y;
+            this.X = 0;
+            this.Y = 0;
+            this.bVisited = false;
+            this.nRouteCost = 0;
+            this.nClosestID = -1;
+
             Connection = new Dictionary<string, int>();
             bExplored = new bool[4] { false, false, false, false };
-            this.cValue = cValue;
-            
+            this.cValue = (char)0;
+
             if (cValue >= 65 && cValue <= 90)
                 bOpened = false;
             else
                 bOpened = true;
         }
+
+        public Object(int X, int Y, char cValue) : this()
+        {
+
+            this.X = X;
+            this.Y = Y;
+            this.cValue = cValue;
+           
+        }
+        public void SetRouteCost(int nRouteCost)
+        {
+            this.nRouteCost = nRouteCost;
+        }
+        public int GetRouteCost()
+        {
+           return this.nRouteCost;
+        }
+
+        public void SetClosestID(int nClosestID)
+        {
+            this.nClosestID = nClosestID;
+        }
+        public int GetClosestID()
+        {
+            return this.nClosestID;
+        }
+
+        public void Visited(bool bVisited)
+        {
+            this.bVisited = bVisited;
+        }
+
+        public bool isVisited()
+        {
+            return this.bVisited;
+        }
+
     }
 
     class Program
@@ -75,7 +120,6 @@ namespace Puzzle18
 
             for (int y = 0; y < nRoomDimensionY; y++)
             {
-                Console.WriteLine();
                 for (int x = 0; x < nRoomDimensionX; x++)
                 {
                     if (IsIntersection(x, y))
@@ -98,6 +142,7 @@ namespace Puzzle18
                     else
                         Console.Write(Labirint[x, y].ToString());
                 }
+                Console.WriteLine();
             }
     
             for(int i = 1; i < Nodes.Count;i++)
@@ -109,36 +154,61 @@ namespace Puzzle18
 
             Console.WriteLine("");
             List<Object> Res = new List<Object>();
-            Res = GetRoute(Nodes[1], Nodes[10]);
+            Res = GetRoute(Nodes[1], Nodes[25]);
+            foreach (Object O in Res)
+            {
+                Console.SetCursorPosition(O.X, O.Y);
+                Console.ForegroundColor = System.ConsoleColor.Red;
+                Console.Write("*");
+            }
+            Console.SetCursorPosition(0, nRoomDimensionY + 2);
+            Console.WriteLine();
+            Console.WriteLine("Steps: {0}", Nodes[2].GetRouteCost());
+
+
         }
 
         private static List<Object> GetRoute(Object Start, Object End)
         {
             List <Object> Res = new List<Object>();
-            bool[] bVisitedNodes = new bool[10000];
-            //for(int i = 0; i < 10000;i++)
-            //    bVisitedNodes[i] = false;
 
-            bVisitedNodes[Start.nID] = true;
-            Console.Write("Start {0} ->", Start.nID);
-
-            Object NextNode = Start;
-            int nCurrentNode = Start.nID;
-            while (NextNode.nID != End.nID && NextNode.nID != 0)
+            List<Object> NextNodes = new List<Object>();
+            NextNodes.Add(Start);
+            bool bStop = false;
+            while (NextNodes.Count > 0 && !bStop)
             {
-                int nNextNode    = int.MaxValue;
-                foreach (KeyValuePair<string, int> D in NextNode.Connection)
+                Start = NextNodes[0];
+                foreach (KeyValuePair<string,int> Connection in Start.Connection)
                 {
-                    if (D.Value < nNextNode && D.Value != nCurrentNode && D.Value > 0 && !bVisitedNodes[D.Value])
-                        nNextNode = D.Value;
+                    if (Connection.Value > 0 && !Nodes.Find(n=>n.nID == Connection.Value).isVisited())
+                    {
+                        int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
+                        int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
+                        if (Nodes[nIndex].GetRouteCost() == 0 || Nodes[nIndex].GetRouteCost() > nTotalCost)
+                        {
+                            Nodes[nIndex].SetRouteCost(nTotalCost);
+                            Nodes[nIndex].SetClosestID(Start.nID);
+                        }
+                        if(!Nodes[nIndex].isVisited())
+                            NextNodes.Add(Nodes[nIndex]);
+                    }
                 }
-                NextNode = GetNodebyID(nNextNode);
-                bVisitedNodes[NextNode.nID] = true;
-                Console.Write(" {0} ->", NextNode.nID);
+                Start.Visited(true);
+                NextNodes.RemoveAt(0);
             }
-            
+
+            Object Temp = End;
+            while (!(Temp is null))
+            {
+                Res.Add(Temp);
+                Temp = Nodes.Find(n => n.nID == Temp.GetClosestID());
+            }
+
             return Res;
         }
+
+ 
+
 
         private static Object GetNodebyID(int nID)
         {
@@ -201,12 +271,12 @@ namespace Puzzle18
                     sPath += cDirection;
                     cDirection = NextStep(x,y, cDirection);
 
-                    if (cDirection == '*')
-                    {
-                        C.bExplored[i] = true;
-                        C.Connection.Add(Directions[i].ToString(), 0);
-                        //break;
-                    }
+                    //if (cDirection == '*')
+                    //{
+                    //    C.bExplored[i] = true;
+                    //    C.Connection.Add(Directions[i].ToString(), 0);
+                    //    //break;
+                    //}
 
                     if(IsIntersection(x, y) || (ReadRoom(x,y)!= '#' && ReadRoom(x,y) != '.'))
                     {
@@ -214,15 +284,10 @@ namespace Puzzle18
                         int nNextNode = Nodes.Find(node => node.X == x && node.Y == y).nID;
                         C.Connection.Add(sPath, nNextNode);
                         break;
-
                     }
                 }
                 while (cDirection != '*');
-
-
             }
-
-
         }
 
         private static bool IsIntersection(int x, int y)
