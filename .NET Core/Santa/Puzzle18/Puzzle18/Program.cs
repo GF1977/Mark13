@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace Puzzle18
@@ -124,23 +125,23 @@ namespace Puzzle18
                 {
                     if (IsIntersection(x, y))
                     {
-                        if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
-                        {
-                            Console.ForegroundColor = System.ConsoleColor.Red;
-                            Console.Write(Labirint[x, y].ToString());
-                        }
-                        else
-                        {
-                            Console.ForegroundColor = System.ConsoleColor.Yellow;
-                            Console.Write("+");
-                        }
-
-                        Console.ForegroundColor = System.ConsoleColor.Gray;
-                        Object C = new Object(x,y,'.');
+                        Console.ForegroundColor = System.ConsoleColor.Yellow;
+                        Console.Write("+");
+                        Object C = new Object(x, y, '.');
                         Nodes.Add(C);
                     }
-                    else
+                    else if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
+                    {
+                        Console.ForegroundColor = System.ConsoleColor.Cyan;
                         Console.Write(Labirint[x, y].ToString());
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = System.ConsoleColor.Gray;
+                        Console.Write(Labirint[x, y].ToString());
+                    }
+                    
+
                 }
                 Console.WriteLine();
             }
@@ -154,17 +155,19 @@ namespace Puzzle18
 
             Console.WriteLine("");
             List<Object> Res = new List<Object>();
-            Res = GetRoute(Nodes[1], Nodes[25]);
+            Res = GetRoute(Nodes[1], Nodes[35]);
             foreach (Object O in Res)
             {
-                Console.SetCursorPosition(O.X, O.Y);
-                Console.ForegroundColor = System.ConsoleColor.Red;
-                Console.Write("*");
-            }
-            Console.SetCursorPosition(0, nRoomDimensionY + 2);
-            Console.WriteLine();
-            Console.WriteLine("Steps: {0}", Nodes[2].GetRouteCost());
+                //Console.SetCursorPosition(O.X, O.Y);
+              //  Console.ForegroundColor = System.ConsoleColor.Red;
+                //Console.Write("*");
+                string sNodetoNode = O.Connection.FirstOrDefault(n => n.Value == O.GetClosestID()).Key;
+                Console.WriteLine(sNodetoNode);
 
+            }
+            //Console.SetCursorPosition(0, nRoomDimensionY + 2);
+            Console.WriteLine();
+            Console.WriteLine("Steps: {0}", Res[0].GetRouteCost());
 
         }
 
