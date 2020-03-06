@@ -16,7 +16,7 @@ namespace Puzzle18
         }
     }
 
-    public class Object
+    public class Node
     {
         public int nID;
         public int X;
@@ -30,7 +30,7 @@ namespace Puzzle18
         public bool bVisited;
 
 
-        public Object()
+        public Node()
         {
             nID = Counter.New;
             this.X = 0;
@@ -49,7 +49,7 @@ namespace Puzzle18
                 bOpened = true;
         }
 
-        public Object(int X, int Y, char cValue) : this()
+        public Node(int X, int Y, char cValue) : this()
         {
 
             this.X = X;
@@ -92,7 +92,9 @@ namespace Puzzle18
         static int nRoomDimensionX;
         static int nRoomDimensionY;
         static char[,] Labirint;
-        static List<Object> Nodes = new List<Object>();
+        static List<Node> Nodes = new List<Node>();
+        static int nX = 0;
+        static int nY = 0;
         
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
@@ -107,8 +109,10 @@ namespace Puzzle18
             nRoomDimensionY = myInput.Count; 
 
             Labirint = new char[nRoomDimensionX, nRoomDimensionY];
-            Nodes.Add(new Object()); // dummy object into [0]
+            Nodes.Add(new Node()); // dummy Node into [0]
 
+            Console.WindowHeight = 70;
+            Console.WindowWidth = nRoomDimensionX + 50;
 
             for (int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
@@ -116,7 +120,7 @@ namespace Puzzle18
                     Labirint[x, y] = char.Parse(myInput[y].Substring(x, 1));
 
                     if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
-                        Nodes.Add(new Object(x, y, Labirint[x, y]));
+                        Nodes.Add(new Node(x, y, Labirint[x, y]));
                 }
 
             for (int y = 0; y < nRoomDimensionY; y++)
@@ -127,7 +131,7 @@ namespace Puzzle18
                     {
                         Console.ForegroundColor = System.ConsoleColor.Yellow;
                         Console.Write("+");
-                        Object C = new Object(x, y, '.');
+                        Node C = new Node(x, y, '.');
                         Nodes.Add(C);
                     }
                     else if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
@@ -148,34 +152,65 @@ namespace Puzzle18
     
             for(int i = 1; i < Nodes.Count;i++)
             {
-                Object Ctemp = Nodes[i];
+                Node Ctemp = Nodes[i];
                 ExploreNode(ref Ctemp);
                 Nodes[i] = Ctemp;
             }
 
-            Console.WriteLine("");
-            List<Object> Res = new List<Object>();
-            Res = GetRoute(Nodes[1], Nodes[35]);
-            foreach (Object O in Res)
-            {
-                //Console.SetCursorPosition(O.X, O.Y);
-              //  Console.ForegroundColor = System.ConsoleColor.Red;
-                //Console.Write("*");
-                string sNodetoNode = O.Connection.FirstOrDefault(n => n.Value == O.GetClosestID()).Key;
-                Console.WriteLine(sNodetoNode);
+            Console.SetCursorPosition(nRoomDimensionX + 10 , 2);
+            Console.Write("Enter the Start  point: ");
+            string sFinish = Console.ReadLine();
+            Console.SetCursorPosition(nRoomDimensionX + 10, 3);
+            Console.Write("Enter the Finish point: ");
+            string sStart = Console.ReadLine();
+            Node nodeStart  = Nodes.Find(n => n.cValue == sStart[0]);
+            Node nodeFinish = Nodes.Find(n => n.cValue == sFinish[0]);
 
+
+            List<Node> Res = new List<Node>();
+            Res = GetRoute(nodeStart, nodeFinish);
+            nX = nodeFinish.X;
+            nY = nodeFinish.Y;
+            foreach (Node O in Res)
+            {
+                string sNodetoNode = O.Connection.FirstOrDefault(n => n.Value == O.GetClosestID()).Key;
+                GoGoGo(sNodetoNode);
             }
-            //Console.SetCursorPosition(0, nRoomDimensionY + 2);
+            Console.SetCursorPosition(0, nRoomDimensionY + 2);
             Console.WriteLine();
-            Console.WriteLine("Steps: {0}", Res[0].GetRouteCost());
+            Console.WriteLine("Steps: {0}", nodeFinish.GetRouteCost());
 
         }
 
-        private static List<Object> GetRoute(Object Start, Object End)
+        private static void GoGoGo(string sPath)
         {
-            List <Object> Res = new List<Object>();
+            if (!(sPath is null))
+            {
+                Console.ForegroundColor = System.ConsoleColor.Red;
+                for (int i = 0; i < sPath.Length; i++)
+                {
+                    char cTemp = Labirint[nX, nY];
+                    Console.SetCursorPosition(nX, nY);
+                    Console.Write(cTemp);
+                    switch (sPath[i])
+                    {
+                        case 'N': nY--; break;
+                        case 'S': nY++; break;
+                        case 'W': nX--; break;
+                        case 'E': nX++; break;
+                        default: break;
+                    }
+                    System.Threading.Thread.Sleep(20);
+                }
+                Console.ForegroundColor = System.ConsoleColor.Gray;
+            }
+        }
 
-            List<Object> NextNodes = new List<Object>();
+        private static List<Node> GetRoute(Node Start, Node End)
+        {
+            List <Node> Res = new List<Node>();
+
+            List<Node> NextNodes = new List<Node>();
             NextNodes.Add(Start);
             bool bStop = false;
             while (NextNodes.Count > 0 && !bStop)
@@ -200,7 +235,7 @@ namespace Puzzle18
                 NextNodes.RemoveAt(0);
             }
 
-            Object Temp = End;
+            Node Temp = End;
             while (!(Temp is null))
             {
                 Res.Add(Temp);
@@ -213,10 +248,10 @@ namespace Puzzle18
  
 
 
-        private static Object GetNodebyID(int nID)
+        private static Node GetNodebyID(int nID)
         {
-            Object res = new Object();
-            foreach (Object N in Nodes)
+            Node res = new Node();
+            foreach (Node N in Nodes)
                     if (N.nID == nID)
                         res = N;
 
@@ -244,7 +279,7 @@ namespace Puzzle18
             return cNewDirection;
         }
 
-        private static void ExploreNode (ref Object C)
+        private static void ExploreNode (ref Node C)
         {
             if (ReadRoom(C.X - 1, C.Y) != '#') C.bExplored[0] = false; else {C.bExplored[0] = true; C.Connection.Add("W", 0); };
             if (ReadRoom(C.X + 1, C.Y) != '#') C.bExplored[1] = false; else {C.bExplored[1] = true; C.Connection.Add("E", 0); };
