@@ -130,7 +130,7 @@ namespace Puzzle18
                     if (IsIntersection(x, y))
                     {
                         Console.ForegroundColor = System.ConsoleColor.Yellow;
-                        Console.Write("+");
+                        Console.Write(Labirint[x, y].ToString());
                         Node C = new Node(x, y, '.');
                         Nodes.Add(C);
                     }
@@ -171,9 +171,15 @@ namespace Puzzle18
             Res = GetRoute(nodeStart, nodeFinish);
             nX = nodeFinish.X;
             nY = nodeFinish.Y;
-            foreach (Node O in Res)
+            foreach (Node nodeN in Res)
             {
-                string sNodetoNode = O.Connection.FirstOrDefault(n => n.Value == O.GetClosestID()).Key;
+                string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
+                foreach (KeyValuePair<string,int> Connection in nodeN.Connection)
+                {
+                    if(Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
+                        sNodetoNode = Connection.Key;
+                }
+                //string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
                 GoGoGo(sNodetoNode);
             }
             Console.SetCursorPosition(0, nRoomDimensionY + 2);
@@ -181,6 +187,8 @@ namespace Puzzle18
             Console.WriteLine("Steps: {0}", nodeFinish.GetRouteCost());
 
         }
+
+        //private static string GetShortestWay(Node N, int )
 
         private static void GoGoGo(string sPath)
         {
@@ -209,7 +217,6 @@ namespace Puzzle18
         private static List<Node> GetRoute(Node Start, Node End)
         {
             List <Node> Res = new List<Node>();
-
             List<Node> NextNodes = new List<Node>();
             NextNodes.Add(Start);
             bool bStop = false;
