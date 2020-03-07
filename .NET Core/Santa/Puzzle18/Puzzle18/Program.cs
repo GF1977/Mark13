@@ -36,17 +36,12 @@ namespace Puzzle18
             this.X = 0;
             this.Y = 0;
             this.bVisited = false;
-            this.nRouteCost = 0;
+            this.nRouteCost = int.MaxValue;
             this.nClosestID = -1;
 
             Connection = new Dictionary<string, int>();
             bExplored = new bool[4] { false, false, false, false };
             this.cValue = (char)0;
-
-            if (cValue >= 65 && cValue <= 90)
-                bOpened = false;
-            else
-                bOpened = true;
         }
 
         public Node(int X, int Y, char cValue) : this()
@@ -55,7 +50,12 @@ namespace Puzzle18
             this.X = X;
             this.Y = Y;
             this.cValue = cValue;
-           
+
+            if (cValue >= 65 && cValue <= 90)
+                bOpened = false;
+            else
+                bOpened = true;
+
         }
         public void SetRouteCost(int nRouteCost)
         {
@@ -70,6 +70,7 @@ namespace Puzzle18
         {
             this.nClosestID = nClosestID;
         }
+
         public int GetClosestID()
         {
             return this.nClosestID;
@@ -95,7 +96,8 @@ namespace Puzzle18
         static List<Node> Nodes = new List<Node>();
         static int nX = 0;
         static int nY = 0;
-        
+        static int nSteps = 0;
+
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
         {
@@ -162,7 +164,7 @@ namespace Puzzle18
             string sFinish = Console.ReadLine();
             Console.SetCursorPosition(nRoomDimensionX + 10, 3);
             Console.Write("Enter the Finish point: ");
-            string sStart = Console.ReadLine();
+            string sStart =  Console.ReadLine();
             Node nodeStart  = Nodes.Find(n => n.cValue == sStart[0]);
             Node nodeFinish = Nodes.Find(n => n.cValue == sFinish[0]);
 
@@ -174,17 +176,17 @@ namespace Puzzle18
             foreach (Node nodeN in Res)
             {
                 string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
-                foreach (KeyValuePair<string,int> Connection in nodeN.Connection)
+                foreach (KeyValuePair<string, int> Connection in nodeN.Connection)
                 {
-                    if(Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
+                    if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
                         sNodetoNode = Connection.Key;
                 }
-                //string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
                 GoGoGo(sNodetoNode);
             }
             Console.SetCursorPosition(0, nRoomDimensionY + 2);
             Console.WriteLine();
             Console.WriteLine("Steps: {0}", nodeFinish.GetRouteCost());
+            Console.WriteLine("Steps: {0}", nSteps);
 
         }
 
@@ -208,40 +210,39 @@ namespace Puzzle18
                         case 'E': nX++; break;
                         default: break;
                     }
-                    System.Threading.Thread.Sleep(20);
+                    System.Threading.Thread.Sleep(10);
+                    nSteps++;
                 }
                 Console.ForegroundColor = System.ConsoleColor.Gray;
             }
+            
         }
 
         private static List<Node> GetRoute(Node Start, Node End)
         {
-            List <Node> Res = new List<Node>();
+            Start.SetRouteCost(0);
             List<Node> NextNodes = new List<Node>();
             NextNodes.Add(Start);
-            bool bStop = false;
-            while (NextNodes.Count > 0 && !bStop)
+            while (NextNodes.Count>0) //(NextNodes.Count > 0 && !bStop)
             {
                 Start = NextNodes[0];
                 foreach (KeyValuePair<string,int> Connection in Start.Connection)
                 {
-                    if (Connection.Value > 0 && !Nodes.Find(n=>n.nID == Connection.Value).isVisited())
-                    {
                         int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
                         int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
-                        if (Nodes[nIndex].GetRouteCost() == 0 || Nodes[nIndex].GetRouteCost() > nTotalCost)
+                        if (Nodes[nIndex].GetRouteCost() > nTotalCost)
                         {
                             Nodes[nIndex].SetRouteCost(nTotalCost);
                             Nodes[nIndex].SetClosestID(Start.nID);
                         }
                         if(!Nodes[nIndex].isVisited())
                             NextNodes.Add(Nodes[nIndex]);
-                    }
                 }
                 Start.Visited(true);
                 NextNodes.RemoveAt(0);
             }
 
+            List<Node> Res = new List<Node>();
             Node Temp = End;
             while (!(Temp is null))
             {
