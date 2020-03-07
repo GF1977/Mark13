@@ -86,6 +86,27 @@ namespace Puzzle18
             return this.bVisited;
         }
 
+        public void OpenDoor()
+        {
+            this.bOpened = true;
+        }
+
+        public bool isKey()
+        {
+            if (this.cValue >= 97 && this.cValue <= 122)
+                return true;
+            else
+                return false;
+        }
+
+        public void pickKey()
+        {
+            if (this.isKey())
+                this.cValue = '.';
+
+        }
+
+
     }
 
     class Program
@@ -103,12 +124,12 @@ namespace Puzzle18
         {
             List<string> myInput = new List<string>();
             StreamReader file = new StreamReader(@".\data.txt");
-               
-            while( !file.EndOfStream)
+
+            while (!file.EndOfStream)
                 myInput.Add(file.ReadLine());
 
             nRoomDimensionX = myInput[0].Length;
-            nRoomDimensionY = myInput.Count; 
+            nRoomDimensionY = myInput.Count;
 
             Labirint = new char[nRoomDimensionX, nRoomDimensionY];
             Nodes.Add(new Node()); // dummy Node into [0]
@@ -116,6 +137,57 @@ namespace Puzzle18
             Console.WindowHeight = 70;
             Console.WindowWidth = nRoomDimensionX + 50;
 
+            LabirintPrefill(myInput);
+            ShowLabirint();
+
+            //FromAtoB();
+            RunForestRun();
+
+
+        }
+
+
+        private static void RunForestRun()
+        {
+            Node nodeStart = Nodes.Find(n => n.cValue == '@');
+            List<Node> Res = new List<Node>();
+            while(true)
+            foreach (Node nodeEnd in Nodes)
+            {
+                Res = GetRoute(nodeStart, nodeEnd);
+
+                if (Res.Count > 1 && nodeEnd.isKey())
+                {
+                    nodeStart = nodeEnd;
+                    //here is the Key
+                    // Open the relevant door
+                    Nodes.Find(n => n.cValue.ToString() == nodeEnd.cValue.ToString().ToUpper()).OpenDoor();
+                    // Pick the key
+                    nodeEnd.pickKey();
+
+                        nX = nodeEnd.X;
+                    nY = nodeEnd.Y;
+                    foreach (Node nodeN in Res)
+                    {
+                        string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
+                        foreach (KeyValuePair<string, int> Connection in nodeN.Connection)
+                        {
+                            if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
+                                sNodetoNode = Connection.Key;
+                        }
+                        GoGoGo(sNodetoNode);
+                    }
+                    Console.SetCursorPosition(0, nRoomDimensionY + 2);
+                    Console.WriteLine();
+                    Console.WriteLine("Steps: {0}", nodeEnd.GetRouteCost());
+                    Console.WriteLine("Steps: {0}", nSteps); // for test purpose
+                }
+            }
+        }
+
+        private static void LabirintPrefill(List<string> myInput)
+        {
+            // filling the array by data from the input
             for (int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
                 {
@@ -125,47 +197,51 @@ namespace Puzzle18
                         Nodes.Add(new Node(x, y, Labirint[x, y]));
                 }
 
+            // adding intersections modes
             for (int y = 0; y < nRoomDimensionY; y++)
-            {
                 for (int x = 0; x < nRoomDimensionX; x++)
-                {
                     if (IsIntersection(x, y))
                     {
-                        Console.ForegroundColor = System.ConsoleColor.Yellow;
-                        Console.Write(Labirint[x, y].ToString());
-                        Node C = new Node(x, y, '.');
-                        Nodes.Add(C);
+                        Nodes.Add(new Node(x, y, '.'));
                     }
-                    else if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
-                    {
-                        Console.ForegroundColor = System.ConsoleColor.Cyan;
-                        Console.Write(Labirint[x, y].ToString());
-                    }
-                    else
-                    {
-                        Console.ForegroundColor = System.ConsoleColor.Gray;
-                        Console.Write(Labirint[x, y].ToString());
-                    }
-                    
 
-                }
-                Console.WriteLine();
-            }
-    
-            for(int i = 1; i < Nodes.Count;i++)
+            // Explore each node
+            for (int i = 1; i < Nodes.Count; i++)
             {
                 Node Ctemp = Nodes[i];
                 ExploreNode(ref Ctemp);
                 Nodes[i] = Ctemp;
             }
+        }
 
-            Console.SetCursorPosition(nRoomDimensionX + 10 , 2);
+        private static void ShowLabirint()
+        {
+            for (int y = 0; y < nRoomDimensionY; y++)
+            {
+                for (int x = 0; x < nRoomDimensionX; x++)
+                {
+                    if (IsIntersection(x, y))
+                        Console.ForegroundColor = System.ConsoleColor.Yellow;
+                    else if (Labirint[x, y] != '.' && Labirint[x, y] != '#')
+                        Console.ForegroundColor = System.ConsoleColor.Cyan;
+                    else
+                        Console.ForegroundColor = System.ConsoleColor.Gray;
+
+                    Console.Write(Labirint[x, y].ToString());
+                }
+                Console.WriteLine();
+            }
+        }
+
+        private static void FromAtoB()
+        {
+            Console.SetCursorPosition(nRoomDimensionX + 10, 2);
             Console.Write("Enter the Start  point: ");
             string sFinish = Console.ReadLine();
             Console.SetCursorPosition(nRoomDimensionX + 10, 3);
             Console.Write("Enter the Finish point: ");
-            string sStart =  Console.ReadLine();
-            Node nodeStart  = Nodes.Find(n => n.cValue == sStart[0]);
+            string sStart = Console.ReadLine();
+            Node nodeStart = Nodes.Find(n => n.cValue == sStart[0]);
             Node nodeFinish = Nodes.Find(n => n.cValue == sFinish[0]);
 
 
@@ -186,11 +262,9 @@ namespace Puzzle18
             Console.SetCursorPosition(0, nRoomDimensionY + 2);
             Console.WriteLine();
             Console.WriteLine("Steps: {0}", nodeFinish.GetRouteCost());
-            Console.WriteLine("Steps: {0}", nSteps);
+            Console.WriteLine("Steps: {0}", nSteps); // for test purpose
 
         }
-
-        //private static string GetShortestWay(Node N, int )
 
         private static void GoGoGo(string sPath)
         {
@@ -230,7 +304,7 @@ namespace Puzzle18
                 {
                         int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
                         int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
-                        if (Nodes[nIndex].GetRouteCost() > nTotalCost)
+                        if (Nodes[nIndex].GetRouteCost() > nTotalCost)// && Nodes[nIndex].bOpened)
                         {
                             Nodes[nIndex].SetRouteCost(nTotalCost);
                             Nodes[nIndex].SetClosestID(Start.nID);
@@ -300,7 +374,8 @@ namespace Puzzle18
                 int x = C.X;
                 int y = C.Y;
 
-                if (C.bExplored[i] == true) continue;
+                // if a room is already explored, or it is locked door - skip this one
+                if (C.bExplored[i] == true || !C.bOpened) continue;
                 
                 char cDirection = Directions[i];
                 do
@@ -316,13 +391,6 @@ namespace Puzzle18
 
                     sPath += cDirection;
                     cDirection = NextStep(x,y, cDirection);
-
-                    //if (cDirection == '*')
-                    //{
-                    //    C.bExplored[i] = true;
-                    //    C.Connection.Add(Directions[i].ToString(), 0);
-                    //    //break;
-                    //}
 
                     if(IsIntersection(x, y) || (ReadRoom(x,y)!= '#' && ReadRoom(x,y) != '.'))
                     {
