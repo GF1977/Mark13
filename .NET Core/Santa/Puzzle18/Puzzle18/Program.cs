@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -102,7 +103,7 @@ namespace Puzzle18
         public void pickKey()
         {
             if (this.isKey())
-                this.cValue = '.';
+                this.cValue = '@';
 
         }
 
@@ -139,11 +140,14 @@ namespace Puzzle18
             Console.WindowWidth = nRoomDimensionX + 50;
 
             LabirintPrefill(myInput);
-            ShowLabirint();
 
+
+
+            //ShowLabirint();
             //FromAtoB();
+            //ShowLabirint();
             //FromAtoB();
-            //FromAtoB();
+            ShowLabirint();
             RunForestRun();
 
 
@@ -159,24 +163,36 @@ namespace Puzzle18
 
             Node nodeStart = Nodes.Find(n => n.cValue == '@');
             List<Node> Res = new List<Node>();
-            while(nKeysNumber>0)
-            foreach (Node nodeEnd in Nodes)
+            while (nKeysNumber > 0)
             {
-                Res = GetRoute(nodeStart, nodeEnd);
+                
+                Node nodeEnd = new Node();
 
+                foreach (Node N in Nodes)
+                {
+                    Res = GetRoute(nodeStart, N);
+                    if (nodeEnd.GetRouteCost() > N.GetRouteCost() && N.GetRouteCost() > 0 && N.isKey() ) 
+                        nodeEnd = N;
+                }
+
+                Res = GetRoute(nodeStart, nodeEnd);
                 if (Res.Count > 1 && nodeEnd.isKey())
                 {
                     nodeStart = nodeEnd;
                     //here is the Key
                     // Open the relevant door
-                    Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == nodeEnd.cValue.ToString().ToUpper());
-                    if(!(nodeDoor is null))
+                    Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == nodeStart.cValue.ToString().ToUpper());
+                    if (!(nodeDoor is null))
                         nodeDoor.OpenDoor();
+
+                    Debug.WriteLine("Keys left {0}    Route {1} = Steps: {2}", nKeysNumber, Res[0].cValue, nSteps);
+
                     // Pick the key
+                    Nodes.Find(n => n.cValue == '@').cValue = '.';
                     nodeEnd.pickKey();
                     nKeysNumber--;
 
-                        nX = nodeEnd.X;
+                    nX = nodeEnd.X;
                     nY = nodeEnd.Y;
                     foreach (Node nodeN in Res)
                     {
@@ -186,11 +202,13 @@ namespace Puzzle18
                             if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
                                 sNodetoNode = Connection.Key;
                         }
+                        //ShowLabirint();
                         GoGoGo(sNodetoNode);
+                        //System.Threading.Thread.Sleep(50);
                     }
                     Console.SetCursorPosition(0, nRoomDimensionY + 2);
                     Console.WriteLine();
-                   // Console.WriteLine("Steps: {0}", nodeEnd.GetRouteCost()); // Node to Node steps
+                    // Console.WriteLine("Steps: {0}", nodeEnd.GetRouteCost()); // Node to Node steps
                     Console.WriteLine("Steps: {0}", nSteps); // Total steps
                 }
             }
@@ -227,6 +245,7 @@ namespace Puzzle18
 
         private static void ShowLabirint()
         {
+            Console.Clear();
             for (int y = 0; y < nRoomDimensionY; y++)
             {
                 for (int x = 0; x < nRoomDimensionX; x++)
@@ -285,6 +304,7 @@ namespace Puzzle18
             if (!(sPath is null))
             {
                 Console.ForegroundColor = System.ConsoleColor.Red;
+
                 for (int i = 0; i < sPath.Length; i++)
                 {
                     char cTemp = Labirint[nX, nY];
