@@ -118,6 +118,7 @@ namespace Puzzle18
         static int nX = 0;
         static int nY = 0;
         static int nSteps = 0;
+        static int nKeysNumber = 0;
 
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
@@ -140,10 +141,10 @@ namespace Puzzle18
             LabirintPrefill(myInput);
             ShowLabirint();
 
-            FromAtoB();
-            FromAtoB();
-            FromAtoB();
-            //RunForestRun();
+            //FromAtoB();
+            //FromAtoB();
+            //FromAtoB();
+            RunForestRun();
 
 
         }
@@ -151,9 +152,14 @@ namespace Puzzle18
 
         private static void RunForestRun()
         {
+            foreach (Node N in Nodes)
+                if (N.isKey())
+                    nKeysNumber++;
+
+
             Node nodeStart = Nodes.Find(n => n.cValue == '@');
             List<Node> Res = new List<Node>();
-            while(true)
+            while(nKeysNumber>0)
             foreach (Node nodeEnd in Nodes)
             {
                 Res = GetRoute(nodeStart, nodeEnd);
@@ -163,9 +169,12 @@ namespace Puzzle18
                     nodeStart = nodeEnd;
                     //here is the Key
                     // Open the relevant door
-                    Nodes.Find(n => n.cValue.ToString() == nodeEnd.cValue.ToString().ToUpper()).OpenDoor();
+                    Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == nodeEnd.cValue.ToString().ToUpper());
+                    if(!(nodeDoor is null))
+                        nodeDoor.OpenDoor();
                     // Pick the key
                     nodeEnd.pickKey();
+                    nKeysNumber--;
 
                         nX = nodeEnd.X;
                     nY = nodeEnd.Y;
@@ -181,8 +190,8 @@ namespace Puzzle18
                     }
                     Console.SetCursorPosition(0, nRoomDimensionY + 2);
                     Console.WriteLine();
-                    Console.WriteLine("Steps: {0}", nodeEnd.GetRouteCost());
-                    Console.WriteLine("Steps: {0}", nSteps); // for test purpose
+                   // Console.WriteLine("Steps: {0}", nodeEnd.GetRouteCost()); // Node to Node steps
+                    Console.WriteLine("Steps: {0}", nSteps); // Total steps
                 }
             }
         }
@@ -261,10 +270,13 @@ namespace Puzzle18
                 }
                 GoGoGo(sNodetoNode);
             }
+
             Console.SetCursorPosition(0, nRoomDimensionY + 2);
-            Console.WriteLine();
-            Console.WriteLine("Steps: {0}", nodeFinish.GetRouteCost());
-            Console.WriteLine("Steps: {0}", nSteps); // for test purpose
+            Console.WriteLine("                                           ");
+            Console.WriteLine("                                           ");
+            Console.SetCursorPosition(0, nRoomDimensionY + 2);
+            Console.WriteLine("Steps: {0,5}", nodeFinish.GetRouteCost());
+            Console.WriteLine("Steps: {0,5}", nSteps); // for test purpose
 
         }
 
@@ -296,6 +308,10 @@ namespace Puzzle18
 
         private static List<Node> GetRoute(Node Start, Node End)
         {
+            List<Node> Res = new List<Node>();
+            if (Start == End)
+                return Res;
+
             foreach (Node N in Nodes)
             {
                 N.SetRouteCost(int.MaxValue);
@@ -309,11 +325,12 @@ namespace Puzzle18
             while (NextNodes.Count>0) //(NextNodes.Count > 0 && !bStop)
             {
                 Start = NextNodes[0];
+                if(Start.bOpened) // only if it is opened
                 foreach (KeyValuePair<string,int> Connection in Start.Connection)
                 {
                         int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
                         int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
-                        if (Nodes[nIndex].GetRouteCost() > nTotalCost)// && Nodes[nIndex].bOpened)
+                        if (Nodes[nIndex].GetRouteCost() > nTotalCost && Nodes[nIndex].bOpened)
                         {
                             Nodes[nIndex].SetRouteCost(nTotalCost);
                             Nodes[nIndex].SetClosestID(Start.nID);
@@ -325,7 +342,7 @@ namespace Puzzle18
                 NextNodes.RemoveAt(0);
             }
 
-            List<Node> Res = new List<Node>();
+            
             Node Temp = End;
             while (!(Temp is null))
             {
