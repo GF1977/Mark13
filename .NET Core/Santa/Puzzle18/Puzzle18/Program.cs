@@ -15,6 +15,10 @@ namespace Puzzle18
         {
             get { return counter++; }
         }
+    public static void Reset()
+        {
+            counter = 0;
+        }
     }
 
     public class Node
@@ -64,7 +68,7 @@ namespace Puzzle18
         }
         public int GetRouteCost()
         {
-           return this.nRouteCost;
+                return this.nRouteCost;
         }
 
         public void SetClosestID(int nClosestID)
@@ -120,11 +124,12 @@ namespace Puzzle18
         static int nY = 0;
         static int nSteps = 0;
         static int nKeysNumber = 0;
+        static List<string> myInput = new List<string>();
 
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
         {
-            List<string> myInput = new List<string>();
+            
             StreamReader file = new StreamReader(@".\data.txt");
 
             while (!file.EndOfStream)
@@ -134,20 +139,18 @@ namespace Puzzle18
             nRoomDimensionY = myInput.Count;
 
             Labirint = new char[nRoomDimensionX, nRoomDimensionY];
-            Nodes.Add(new Node()); // dummy Node into [0]
 
             Console.WindowHeight = 70;
             Console.WindowWidth = nRoomDimensionX + 50;
 
             LabirintPrefill(myInput);
 
-
-
             //ShowLabirint();
             //FromAtoB();
             //ShowLabirint();
             //FromAtoB();
             ShowLabirint();
+
             RunForestRun();
 
 
@@ -160,62 +163,66 @@ namespace Puzzle18
                 if (N.isKey())
                     nKeysNumber++;
 
-
             Node nodeStart = Nodes.Find(n => n.cValue == '@');
             List<Node> Res = new List<Node>();
+            List<Node> RouteOptions = new List<Node>();
+
+            Node nodeEnd = new Node();
+
             while (nKeysNumber > 0)
-            {
-                
-                Node nodeEnd = new Node();
-
-                foreach (Node N in Nodes)
                 {
-                    Res = GetRoute(nodeStart, N);
-                    if (nodeEnd.GetRouteCost() > N.GetRouteCost() && N.GetRouteCost() > 0 && N.isKey() ) 
-                        nodeEnd = N;
-                }
-
-                Res = GetRoute(nodeStart, nodeEnd);
-                if (Res.Count > 1 && nodeEnd.isKey())
-                {
-                    nodeStart = nodeEnd;
-                    //here is the Key
-                    // Open the relevant door
-                    Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == nodeStart.cValue.ToString().ToUpper());
-                    if (!(nodeDoor is null))
-                        nodeDoor.OpenDoor();
-
-                    Debug.WriteLine("Keys left {0}    Route {1} = Steps: {2}", nKeysNumber, Res[0].cValue, nSteps);
-
-                    // Pick the key
-                    Nodes.Find(n => n.cValue == '@').cValue = '.';
-                    nodeEnd.pickKey();
-                    nKeysNumber--;
-
-                    nX = nodeEnd.X;
-                    nY = nodeEnd.Y;
-                    foreach (Node nodeN in Res)
+                    nodeEnd = new Node();
+                    foreach (Node N in Nodes)
                     {
-                        string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
-                        foreach (KeyValuePair<string, int> Connection in nodeN.Connection)
-                        {
-                            if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
-                                sNodetoNode = Connection.Key;
-                        }
-                        //ShowLabirint();
-                        GoGoGo(sNodetoNode);
-                        //System.Threading.Thread.Sleep(50);
+                        GetRoute(nodeStart, N);
+                        if (nodeEnd.GetRouteCost() > N.GetRouteCost() && N.GetRouteCost() > 0 && N.isKey())
+                            nodeEnd = N;
                     }
-                    Console.SetCursorPosition(0, nRoomDimensionY + 2);
-                    Console.WriteLine();
-                    // Console.WriteLine("Steps: {0}", nodeEnd.GetRouteCost()); // Node to Node steps
-                    Console.WriteLine("Steps: {0}", nSteps); // Total steps
+
+                    Res = GetRoute(nodeStart, nodeEnd);
+                    if (Res.Count > 1 && nodeEnd.isKey())
+                    {
+                        nodeStart = nodeEnd;
+                        //here is the Key
+                        // Open the relevant door
+                        Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == nodeStart.cValue.ToString().ToUpper());
+                        if (!(nodeDoor is null))
+                            nodeDoor.OpenDoor();
+
+                        Console.WriteLine("{0}={1} ", nodeEnd.cValue, nodeEnd.GetRouteCost());
+                        nSteps += nodeEnd.GetRouteCost();
+
+                        // Pick the key
+                        Nodes.Find(n => n.cValue == '@').cValue = '.';
+                        nodeEnd.pickKey();
+                        nKeysNumber--;
+
+                        nX = nodeEnd.X;
+                        nY = nodeEnd.Y;
+                        foreach (Node nodeN in Res)
+                        {
+                            string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
+                            foreach (KeyValuePair<string, int> Connection in nodeN.Connection)
+                            {
+                                if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
+                                    sNodetoNode = Connection.Key;
+                            }
+                        //ShowLabirint();
+                        //GoGoGo(sNodetoNode);
+                        //System.Threading.Thread.Sleep(50);
+                        }
+                    }
                 }
-            }
+            Console.WriteLine();
+            Console.WriteLine("Steps: {0}", nSteps); // Total steps
         }
 
         private static void LabirintPrefill(List<string> myInput)
         {
+            Counter.Reset();
+            Nodes = new List<Node>();
+            Nodes.Add(new Node()); // dummy Node into [0]
+
             // filling the array by data from the input
             for (int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
@@ -348,15 +355,17 @@ namespace Puzzle18
                 if(Start.bOpened) // only if it is opened
                 foreach (KeyValuePair<string,int> Connection in Start.Connection)
                 {
-                        int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
-                        int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
-                        if (Nodes[nIndex].GetRouteCost() > nTotalCost && Nodes[nIndex].bOpened)
-                        {
-                            Nodes[nIndex].SetRouteCost(nTotalCost);
-                            Nodes[nIndex].SetClosestID(Start.nID);
-                        }
-                        if(!Nodes[nIndex].isVisited())
-                            NextNodes.Add(Nodes[nIndex]);
+
+                            int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
+                            int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
+                            if (Nodes[nIndex].GetRouteCost() > nTotalCost && Nodes[nIndex].bOpened)
+                            {
+                                Nodes[nIndex].SetRouteCost(nTotalCost);
+                                Nodes[nIndex].SetClosestID(Start.nID);
+                            }
+                            if (!Nodes[nIndex].isVisited())
+                                NextNodes.Add(Nodes[nIndex]);
+
                 }
                 Start.Visited(true);
                 NextNodes.RemoveAt(0);
@@ -367,6 +376,7 @@ namespace Puzzle18
             while (!(Temp is null))
             {
                 Res.Add(Temp);
+                if (Temp.cValue == '@') break;
                 Temp = Nodes.Find(n => n.nID == Temp.GetClosestID());
             }
 
