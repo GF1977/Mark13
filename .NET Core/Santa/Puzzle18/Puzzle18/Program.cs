@@ -140,8 +140,10 @@ namespace Puzzle18
             LabirintPrefill(myInput);
             ShowLabirint();
 
-            //FromAtoB();
-            RunForestRun();
+            FromAtoB();
+            FromAtoB();
+            FromAtoB();
+            //RunForestRun();
 
 
         }
@@ -294,6 +296,13 @@ namespace Puzzle18
 
         private static List<Node> GetRoute(Node Start, Node End)
         {
+            foreach (Node N in Nodes)
+            {
+                N.SetRouteCost(int.MaxValue);
+                N.Visited(false);
+                N.SetClosestID(-1);
+            }
+
             Start.SetRouteCost(0);
             List<Node> NextNodes = new List<Node>();
             NextNodes.Add(Start);
@@ -375,7 +384,7 @@ namespace Puzzle18
                 int y = C.Y;
 
                 // if a room is already explored, or it is locked door - skip this one
-                if (C.bExplored[i] == true || !C.bOpened) continue;
+                if (C.bExplored[i] == true) continue;
                 
                 char cDirection = Directions[i];
                 do
