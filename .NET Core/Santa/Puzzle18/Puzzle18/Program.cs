@@ -124,6 +124,7 @@ namespace Puzzle18
         static int nY = 0;
         static int nSteps = 0;
         static int nKeysNumber = 0;
+        static int nAbsoluteMin = int.MaxValue;
         static List<string> myInput = new List<string>();
 
         static char[] Directions = { 'W', 'E', 'N', 'S' };
@@ -159,36 +160,104 @@ namespace Puzzle18
 
         private static void RunForestRun()
         {
+            int nKeysNumberEtalon = 0;
             foreach (Node N in Nodes)
                 if (N.isKey())
-                    nKeysNumber++;
+                    nKeysNumberEtalon++;
 
+            nKeysNumber = nKeysNumberEtalon;
             Node nodeStart = Nodes.Find(n => n.cValue == '@');
             List<Node> Res = new List<Node>();
             List<Node> RouteOptions = new List<Node>();
 
             Node nodeEnd = new Node();
-            // Debug - the right order
-            // a, c, f, i, d, g, b, e, h
-            // 2, 3, 9, 15,7,13, 6, 8, 14
-            int[] nAnswers = new int[] { 2, 3, 9, 15, 7, 13, 6, 8, 14 };
-            int KN = nKeysNumber;
+            List<int>[] lOptions = new List<int>[31];
+            for (int i = 0; i < 31; i++)
+                lOptions[i] = new List<int>();
             while (nKeysNumber > 0)
             {
                 nodeEnd = new Node();
                 foreach (Node N in Nodes)
                 {
-                    GetRoute(nodeStart, N);
-                    if (nodeEnd.GetRouteCost() > N.GetRouteCost() && N.GetRouteCost() > 0 && N.isKey())
+                    Res = GetRoute(nodeStart, N);
+                    if (Res.Count>1 && N.GetRouteCost() > 0 && N.isKey())
+                    {
                         nodeEnd = N;
+                        lOptions[nKeysNumberEtalon - nKeysNumber].Add(N.nID);
+                    }
                 }
 
-                nodeEnd = Nodes[nAnswers[KN - nKeysNumber]];
+                nodeEnd = Nodes.Find(n => n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
                 Res = GetRoute(nodeStart, nodeEnd);
+                if (Res.Count > 1 && Res[0].isKey())
+                    nKeysNumber--;
+
                 nodeStart = PointToPoint( Res);
             }
-            Console.WriteLine();
-            Console.WriteLine("Steps: {0}", nSteps); // Total steps
+
+            while (GetNewOrder(ref lOptions))
+            {
+                nSteps = 0;
+                LabirintPrefill(myInput);
+                nKeysNumber = nKeysNumberEtalon;
+                nodeStart = Nodes.Find(n => n.cValue == '@');
+
+                while (nKeysNumber > 0)
+                {
+                    nodeEnd = new Node();
+
+                    if (lOptions[nKeysNumberEtalon - nKeysNumber].Count > 0)
+                        nodeEnd = Nodes.Find(n => n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
+                    else
+                    {
+                        nodeEnd = new Node();
+                        foreach (Node N in Nodes)
+                        {
+                            Res = GetRoute(nodeStart, N);
+                            if (Res.Count > 1 && N.GetRouteCost() > 0 && N.isKey())
+                            {
+                                nodeEnd = N;
+                                lOptions[nKeysNumberEtalon - nKeysNumber].Add(N.nID);
+                            }
+                        }
+                    }
+
+
+                    nodeEnd = Nodes.Find(n=>n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
+                    Res = GetRoute(nodeStart, nodeEnd);
+                    if (Res.Count > 1 && Res[0].isKey())
+                        nKeysNumber--;
+
+                    nodeStart = PointToPoint(Res);
+                    if (nSteps >= nAbsoluteMin) break;
+                }
+
+                if (nSteps < nAbsoluteMin)
+                {
+                    nAbsoluteMin = nSteps;
+                    Console.WriteLine("Minimal Steps: {0}", nAbsoluteMin);
+                }
+            }
+        }
+
+        private static bool GetNewOrder(ref List<int>[] lOptions)
+        {
+            bool res = false;
+            for (int i = 30; i >= 0; i--)
+            {
+                if (lOptions[i].Count >= 1)
+                { 
+                    lOptions[i].RemoveAt(0);
+                    if (lOptions[i].Count >= 1)
+                    {
+                        res = true;
+                        break;
+                    }
+                }
+            }
+
+            return res;
+            
         }
 
         private static Node PointToPoint(List<Node> Res)
@@ -204,13 +273,13 @@ namespace Puzzle18
                 if (!(nodeDoor is null))
                     nodeDoor.OpenDoor();
 
-                Console.WriteLine("{0}={1} ", nodeEnd.cValue, nodeEnd.GetRouteCost());
+                //Console.Write("{0}={1}  ", nodeEnd.cValue, nodeEnd.GetRouteCost());
                 nSteps += nodeEnd.GetRouteCost();
 
                 // Pick the key
                 Nodes.Find(n => n.cValue == '@').cValue = '.';
                 nodeEnd.pickKey();
-                nKeysNumber--;
+                //nKeysNumber--;
 
                 nX = nodeEnd.X;
                 nY = nodeEnd.Y;
