@@ -166,7 +166,7 @@ namespace Puzzle18
                     nKeysNumberEtalon++;
 
             nKeysNumber = nKeysNumberEtalon;
-            Node nodeStart = Nodes.Find(n => n.cValue == '@');
+            Node nodeStartOrigin = Nodes.Find(n => n.cValue == '@');
             List<Node> Res = new List<Node>();
             List<Node> RouteOptions = new List<Node>();
 
@@ -174,51 +174,28 @@ namespace Puzzle18
             List<int>[] lOptions = new List<int>[31];
             for (int i = 0; i < 31; i++)
                 lOptions[i] = new List<int>();
-            while (nKeysNumber > 0)
-            {
-                nodeEnd = new Node();
-                foreach (Node N in Nodes)
-                {
-                    Res = GetRoute(nodeStart, N);
-                    if (Res.Count>1 && N.GetRouteCost() > 0 && N.isKey())
-                    {
-                        nodeEnd = N;
-                        lOptions[nKeysNumberEtalon - nKeysNumber].Add(N.nID);
-                    }
-                }
 
-                nodeEnd = Nodes.Find(n => n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
-                Res = GetRoute(nodeStart, nodeEnd);
-                if (Res.Count > 1 && Res[0].isKey())
-                    nKeysNumber--;
+            bool bStop = false;
 
-                nodeStart = PointToPoint( Res);
-            }
-
-            while (GetNewOrder(ref lOptions))
+            // 1 min 18 sec to find 136
+            while (!bStop)
             {
                 nSteps = 0;
                 LabirintPrefill(myInput);
+
                 nKeysNumber = nKeysNumberEtalon;
-                nodeStart = Nodes.Find(n => n.cValue == '@');
+                Node nodeStart = nodeStartOrigin;
 
                 while (nKeysNumber > 0)
                 {
-                    nodeEnd = new Node();
 
-                    if (lOptions[nKeysNumberEtalon - nKeysNumber].Count > 0)
-                        nodeEnd = Nodes.Find(n => n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
-                    else
+                    if (lOptions[nKeysNumberEtalon - nKeysNumber].Count == 0)
                     {
-                        nodeEnd = new Node();
                         foreach (Node N in Nodes)
                         {
                             Res = GetRoute(nodeStart, N);
                             if (Res.Count > 1 && N.GetRouteCost() > 0 && N.isKey())
-                            {
-                                nodeEnd = N;
                                 lOptions[nKeysNumberEtalon - nKeysNumber].Add(N.nID);
-                            }
                         }
                     }
 
@@ -237,6 +214,8 @@ namespace Puzzle18
                     nAbsoluteMin = nSteps;
                     Console.WriteLine("Minimal Steps: {0}", nAbsoluteMin);
                 }
+
+                bStop = !GetNewOrder(ref lOptions);
             }
         }
 
