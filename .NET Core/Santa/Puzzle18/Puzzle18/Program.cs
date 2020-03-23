@@ -21,6 +21,31 @@ namespace Puzzle18
         }
     }
 
+    public class TheMap
+    {
+        public int nId; // node id
+        public List<Route> Routes = new List<Route>();
+
+        public TheMap(int nId)
+        {
+            this.nId = nId;
+        }
+    }
+
+    public class Route
+    {
+        public int nId;
+        public int nSteps;
+        public List<char> Doors = new List<char>();
+
+       
+        public Route(int nId)
+        {
+            this.nId = nId;
+            nSteps = 0;
+        }
+    }
+
     public class Node
     {
         public int nID;
@@ -104,6 +129,16 @@ namespace Puzzle18
                 return false;
         }
 
+        public bool isDoor()
+        {
+            if (this.cValue >= 65 && this.cValue <= 90 ) 
+                return true;
+            else
+                return false;
+        }
+
+
+
         public void pickKey()
         {
             if (this.isKey())
@@ -150,13 +185,57 @@ namespace Puzzle18
             //FromAtoB();
             //ShowLabirint();
             //FromAtoB();
-            ShowLabirint();
+            //ShowLabirint();
 
-            RunForestRun();
+            //RunForestRun();
+
+            List<TheMap> Map = new List<TheMap>();
+            DrawTheMap(ref Map);
 
 
         }
 
+
+        private static void DrawTheMap(ref List<TheMap> Map)
+        {
+            foreach (Node NodeStart in Nodes)
+            {
+                TheMap map = new TheMap(NodeStart.nID);
+                foreach (Node NodeFinish in Nodes)
+                {
+                    List<Node> Path = new List<Node>();
+                    Route route = new Route(0);
+                    if (NodeStart.nID > 0 && NodeFinish.nID > 0 && NodeStart.nID != NodeFinish.nID)
+                    {
+                        route.nId = NodeFinish.nID;
+                        Path = GetRoute(NodeStart, NodeFinish, false);
+                        if (Path.Count > 1)
+                        {
+                            route.nSteps = Path[0].GetRouteCost();
+                            foreach(Node n in Path)
+                            {
+                                if(n.isDoor())
+                                    route.Doors.Add(n.cValue);
+                            }
+                        }
+
+                    }
+                    map.Routes.Add(route);
+                }
+                Map.Add(map);
+            }
+        }
+
+
+        private static IEnumerable<string> Permutate(string source)
+        {
+            if (source.Length == 1) return new List<string> { source };
+
+            var permutations = from c in source
+                               from p in Permutate(new String(source.Where(x => x != c).ToArray()))
+                               select c + p;
+            return permutations;
+        }
 
         private static void RunForestRun()
         {
@@ -182,7 +261,8 @@ namespace Puzzle18
             {
                 nSteps = 0;
                 LabirintPrefill(myInput);
-
+                // a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m
+                //16,9,3,22,4,17,17,23,1
                 nKeysNumber = nKeysNumberEtalon;
                 Node nodeStart = nodeStartOrigin;
 
@@ -193,26 +273,47 @@ namespace Puzzle18
                     {
                         foreach (Node N in Nodes)
                         {
-                            Res = GetRoute(nodeStart, N);
-                            if (Res.Count > 1 && N.GetRouteCost() > 0 && N.isKey())
-                                lOptions[nKeysNumberEtalon - nKeysNumber].Add(N.nID);
+                            if (N.isKey())
+                            {
+                                Res = GetRoute(nodeStart, N);
+                                if (Res.Count > 1 && N.GetRouteCost() > 0)
+                                    lOptions[nKeysNumberEtalon - nKeysNumber].Add(N.nID);
+                            }
                         }
                     }
 
 
                     nodeEnd = Nodes.Find(n=>n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
                     Res = GetRoute(nodeStart, nodeEnd);
-                    if (Res.Count > 1 && Res[0].isKey())
+                    
+                    if (Res.Count > 1)
+                    {
                         nKeysNumber--;
+                        nodeStart = PointToPoint(Res);
+                    }
+                    else
+                        break;
 
-                    nodeStart = PointToPoint(Res);
+                    
                     if (nSteps >= nAbsoluteMin) break;
                 }
 
                 if (nSteps < nAbsoluteMin)
                 {
                     nAbsoluteMin = nSteps;
+                    
+                    int i = 0;
+                    string sMessage = "";
+                    while(lOptions[i].Count > 0)
+                    {
+                        Node N = Nodes.Find(n => n.nID == lOptions[i].ElementAt(0));
+                        sMessage += Labirint[N.X, N.Y] + " , ";
+                        i++;
+                    }
+                    sMessage += " End";
                     Console.WriteLine("Minimal Steps: {0}", nAbsoluteMin);
+                    Console.WriteLine("Keys: {0}", sMessage);
+
                 }
 
                 bStop = !GetNewOrder(ref lOptions);
@@ -243,7 +344,7 @@ namespace Puzzle18
         {
             Node nodeStart = Res[Res.Count-1];
             Node nodeEnd = Res[0];
-            if (Res.Count > 1 && nodeEnd.isKey())
+            //if (Res.Count > 1 && nodeEnd.isKey())
             {
                 nodeStart = nodeEnd;
                 //here is the Key
@@ -260,18 +361,18 @@ namespace Puzzle18
                 nodeEnd.pickKey();
                 //nKeysNumber--;
 
-                nX = nodeEnd.X;
-                nY = nodeEnd.Y;
-                foreach (Node nodeN in Res)
-                {
-                    string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
-                    foreach (KeyValuePair<string, int> Connection in nodeN.Connection)
-                        if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
-                            sNodetoNode = Connection.Key;
-                    //ShowLabirint();
-                    //GoGoGo(sNodetoNode);
-                    //System.Threading.Thread.Sleep(50);
-                }
+                //nX = nodeEnd.X;
+                //nY = nodeEnd.Y;
+                //foreach (Node nodeN in Res)
+                //{
+                //    string sNodetoNode = nodeN.Connection.FirstOrDefault(n => n.Value == nodeN.GetClosestID()).Key;
+                //    foreach (KeyValuePair<string, int> Connection in nodeN.Connection)
+                //        if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
+                //            sNodetoNode = Connection.Key;
+                //    //ShowLabirint();
+                //    //GoGoGo(sNodetoNode);
+                //    //System.Threading.Thread.Sleep(50);
+                //}
             }
 
             return nodeStart;
@@ -329,6 +430,42 @@ namespace Puzzle18
                 Console.WriteLine();
             }
         }
+
+        private static int RunByThePath (string sPath)
+        {
+            //a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m
+            //c, e, b, f, k, a, g, n, l, d, h, m, j, o, i, p
+            //int nSteps = 0;
+            //string[] sNodesNames = sPath.Split(", ");
+            string[] sNodesNames = new string[sPath.Length];
+            for (int ii = 0; ii < sPath.Length; ii++)
+                sNodesNames[ii] = sPath[ii].ToString();
+
+            Node nodeStart = Nodes.Find(n => n.cValue == '@');
+
+            int i = 0;
+            while(i < sNodesNames.Length)
+            {
+                Node nodeEnd = Nodes.Find(n => n.cValue.ToString() == sNodesNames[i]);
+                string sStartValue = nodeStart.cValue.ToString();
+                string sEndValue = nodeEnd.cValue.ToString();
+                List<Node> Res = new List<Node>();
+                Res = GetRoute(nodeStart, nodeEnd);
+                if (Res.Count > 1)
+                {
+                    Node nodeStartNew = PointToPoint(Res);
+                    //Console.WriteLine("From {0} to {1} = {2}", sStartValue, sEndValue, nSteps);
+                    nodeStart = nodeStartNew;
+                    i++;
+                }
+                else
+                    break;
+            }
+
+
+            return nSteps;
+        }
+
 
         private static void FromAtoB()
         {
@@ -393,7 +530,7 @@ namespace Puzzle18
             
         }
 
-        private static List<Node> GetRoute(Node Start, Node End)
+        private static List<Node> GetRoute(Node Start, Node End, bool bCheckDoor = true)
         {
             List<Node> Res = new List<Node>();
             if (Start == End)
@@ -412,13 +549,13 @@ namespace Puzzle18
             while (NextNodes.Count>0) //(NextNodes.Count > 0 && !bStop)
             {
                 Start = NextNodes[0];
-                if(Start.bOpened) // only if it is opened
+                if(Start.bOpened || !bCheckDoor) // only if it is opened
                 foreach (KeyValuePair<string,int> Connection in Start.Connection)
                 {
 
                             int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
                             int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
-                            if (Nodes[nIndex].GetRouteCost() > nTotalCost && Nodes[nIndex].bOpened)
+                            if (Nodes[nIndex].GetRouteCost() > nTotalCost && (Nodes[nIndex].bOpened || !bCheckDoor))
                             {
                                 Nodes[nIndex].SetRouteCost(nTotalCost);
                                 Nodes[nIndex].SetClosestID(Start.nID);
