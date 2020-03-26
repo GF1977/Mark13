@@ -199,13 +199,15 @@ namespace Puzzle18
         private static void DrawTheMap(ref List<TheMap> Map)
         {
             foreach (Node NodeStart in Nodes)
+            if(NodeStart.isKey() || NodeStart.cValue == '@')
             {
                 TheMap map = new TheMap(NodeStart.nID);
                 foreach (Node NodeFinish in Nodes)
+                if(NodeFinish.isKey())
                 {
                     List<Node> Path = new List<Node>();
                     Route route = new Route(0);
-                    if (NodeStart.nID > 0 && NodeFinish.nID > 0 && NodeStart.nID != NodeFinish.nID)
+                    if (NodeStart.nID > 0 && NodeFinish.nID > 0 &&  NodeFinish.nID > NodeStart.nID)
                     {
                         route.nId = NodeFinish.nID;
                         Path = GetRoute(NodeStart, NodeFinish, false);
@@ -220,7 +222,8 @@ namespace Puzzle18
                         }
 
                     }
-                    map.Routes.Add(route);
+                    if(route.nId>0)
+                        map.Routes.Add(route);
                 }
                 Map.Add(map);
             }
