@@ -21,29 +21,33 @@ namespace Puzzle18
         }
     }
 
-    public class TheMap
+    public struct TheMap
     {
         public int nId; // node id
-        public List<Route> Routes = new List<Route>();
+        public char cValue; // node value
+        public List<Route> Routes;
 
-        public TheMap(int nId)
+        public TheMap(int nId, char cValue)
         {
             this.nId = nId;
-        }
+            this.cValue = cValue;
+            Routes = new List<Route>();
+    }
     }
 
-    public class Route
+    public struct Route
     {
         public int nId;
         public int nSteps;
-        public List<char> Doors = new List<char>();
+        public List<char> Doors;// = new List<char>();
 
        
         public Route(int nId)
         {
             this.nId = nId;
             nSteps = 0;
-        }
+            Doors = new List<char>();
+    }
     }
 
     public class Node
@@ -161,6 +165,8 @@ namespace Puzzle18
         static int nKeysNumber = 0;
         static int nAbsoluteMin = int.MaxValue;
         static List<string> myInput = new List<string>();
+        static List<TheMap> MapVanile = new List<TheMap>();
+        static List<TheMap> Map = new List<TheMap>();
 
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
@@ -187,11 +193,11 @@ namespace Puzzle18
             //FromAtoB();
             //ShowLabirint();
 
-            //RunForestRun();
+           //RunForestRun();
 
-            List<TheMap> Map = new List<TheMap>();
-            DrawTheMap(ref Map);
-
+            //List<TheMap> Map = new List<TheMap>();
+            DrawTheMap(ref MapVanile);
+            RunForestRun2();
 
         }
 
@@ -201,13 +207,13 @@ namespace Puzzle18
             foreach (Node NodeStart in Nodes)
             if(NodeStart.isKey() || NodeStart.cValue == '@')
             {
-                TheMap map = new TheMap(NodeStart.nID);
+                TheMap map = new TheMap(NodeStart.nID,NodeStart.cValue);
                 foreach (Node NodeFinish in Nodes)
                 if(NodeFinish.isKey())
                 {
                     List<Node> Path = new List<Node>();
                     Route route = new Route(0);
-                    if (NodeStart.nID > 0 && NodeFinish.nID > 0 &&  NodeFinish.nID > NodeStart.nID)
+                    if (NodeStart.nID > 0 && NodeFinish.nID > 0 &&  NodeFinish.nID != NodeStart.nID)
                     {
                         route.nId = NodeFinish.nID;
                         Path = GetRoute(NodeStart, NodeFinish, false);
@@ -240,6 +246,102 @@ namespace Puzzle18
             return permutations;
         }
 
+        private static void RunForestRun2()
+        {
+            int nKeysNumberEtalon = 0;
+            foreach (Node N in Nodes)
+                if (N.isKey())
+                    nKeysNumberEtalon++;
+
+            nKeysNumber = nKeysNumberEtalon;
+
+            List<int>[] lOptions = new List<int>[31];
+            for (int i = 0; i < 31; i++)
+                lOptions[i] = new List<int>();
+
+            List<int>[] lOptionsCost = new List<int>[31];
+            for (int i = 0; i < 31; i++)
+                lOptionsCost[i] = new List<int>();
+
+
+            bool bStop = false;
+
+            while (!bStop)
+            {
+                Map = MapVanile;
+                nSteps = 0;
+                nKeysNumber = nKeysNumberEtalon;
+
+                TheMap M = Map.Find(n => n.cValue == '@');
+                int nStartId = M.nId;
+                int nEndId = 0;
+                int nPrevRoom = 0;
+                char cKey;
+
+                while (nKeysNumber > 0 && nSteps < 10000)
+                {
+
+                    if (lOptions[nKeysNumberEtalon - nKeysNumber].Count == 0)
+                    {
+                        M = Map.Find(n => n.nId == nStartId);
+                        foreach (Route R in M.Routes)
+                        {
+                            if (R.Doors.Count == 0 )
+                            {
+                                lOptions[nKeysNumberEtalon - nKeysNumber].Add(R.nId);
+                                lOptionsCost[nKeysNumberEtalon - nKeysNumber].Add(R.nSteps);
+                               // break;
+                            }
+                        }
+                    }
+
+                    
+                    nEndId = lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0);
+                    if (nPrevRoom == nEndId)
+                        nEndId = lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(1);
+
+                    nSteps += lOptionsCost[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0);
+
+                    cKey = Nodes.Find(n => n.nID == nEndId).cValue;
+                    foreach(TheMap map in Map)
+                        foreach (Route route in map.Routes)
+                        {
+                            string temp = cKey.ToString().ToUpper();
+                            route.Doors.Remove(temp[0]);
+                        }
+
+                     nPrevRoom = nStartId;
+                     nStartId = nEndId;
+
+                        nKeysNumber--;
+
+
+                   
+
+                   if (nSteps >= nAbsoluteMin) break;
+                }
+
+                if (nSteps < nAbsoluteMin)
+                {
+                    nAbsoluteMin = nSteps;
+
+                    int i = 0;
+                    string sMessage = "";
+                    while (lOptions[i].Count > 0)
+                    {
+                        Node N = Nodes.Find(n => n.nID == lOptions[i].ElementAt(0));
+                        sMessage += Labirint[N.X, N.Y] + " , ";
+                        i++;
+                    }
+                    sMessage += " End";
+                    Console.WriteLine("Minimal Steps: {0}", nAbsoluteMin);
+                    Console.WriteLine("Keys: {0}", sMessage);
+
+                }
+
+                bStop = !GetNewOrder(ref lOptions);
+            }
+        }
         private static void RunForestRun()
         {
             int nKeysNumberEtalon = 0;
@@ -268,6 +370,7 @@ namespace Puzzle18
                 //16,9,3,22,4,17,17,23,1
                 nKeysNumber = nKeysNumberEtalon;
                 Node nodeStart = nodeStartOrigin;
+                Map = MapVanile;
 
                 while (nKeysNumber > 0)
                 {
@@ -287,12 +390,32 @@ namespace Puzzle18
 
 
                     nodeEnd = Nodes.Find(n=>n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
+                    int mySteps;
+                    if (nodeEnd.isKey() && (nodeStart.isKey() ||nodeStart.cValue == '@' ))
+                        mySteps = Map.Find(n => n.nId == nodeStart.nID).Routes.Find(n => n.nId == nodeEnd.nID).nSteps;
+
+
                     Res = GetRoute(nodeStart, nodeEnd);
+
+                    
+
                     
                     if (Res.Count > 1)
                     {
                         nKeysNumber--;
-                        nodeStart = PointToPoint(Res);
+
+                        nodeEnd = Res[0];
+                        nodeStart = nodeEnd;
+
+                        Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == nodeStart.cValue.ToString().ToUpper());
+                        if (!(nodeDoor is null))
+                            nodeDoor.OpenDoor();
+ 
+                        nSteps += nodeEnd.GetRouteCost();
+
+                        Nodes.Find(n => n.cValue == '@').cValue = '.';
+                        nodeEnd.pickKey();
+
                     }
                     else
                         break;
