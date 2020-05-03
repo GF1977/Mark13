@@ -16,9 +16,10 @@ namespace MyClassTemplate
             Int64 nStatus;
             Int64 nStartValue = X;
             int nInputvalueCount = 0;
+            TheCommand myCommand = new TheCommand();
             do
             {
-                TheCommand myCommand = new TheCommand(nProgrammStep, ref commands);
+                myCommand = new TheCommand(nProgrammStep, ref commands);
                 if(myCommand.GetCommand()==3) //it is Input
                 {
                     if (nInputvalueCount == 0)
@@ -59,14 +60,14 @@ namespace MyClassTemplate
             foreach (string word in words)
                 commands_vanile.Add(Int64.Parse(word));
 
-            for (int ii = 0; ii < 5000; ii++)
+            for (int ii = 0; ii < 100; ii++)
                 commands_vanile.Add(0);
 
             
 
             int nCount = 0;
-            for (int X = 0; X < 10; X++)
-                for (int Y = 0; Y < 10; Y++)
+            for (int X = 0; X < 100; X++)
+                for (int Y = 0; Y < 120; Y++)
                 {
                     List<Int64> commands = new List<Int64>(commands_vanile);
                     Console.SetCursorPosition(Y, X);
