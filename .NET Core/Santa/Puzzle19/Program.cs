@@ -59,7 +59,7 @@ namespace MyClassTemplate
             foreach (string word in words)
                 commands_vanile.Add(Int64.Parse(word));
 
-            for (int ii = 0; ii < 1000; ii++)
+            for (int ii = 0; ii < 5000; ii++)
                 commands_vanile.Add(0);
 
             
