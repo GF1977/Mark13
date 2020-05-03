@@ -110,7 +110,19 @@ namespace MyClasses
             Int64 res = -1;
             if (mode == 0) res = words[(int)(mAddress)];
             if (mode == 1) res = mAddress;
-            if (mode == 2) res = words[(int)(mAddress + relative_base_offset)];
+            if (mode == 2)
+            {
+                try
+                    {
+                       res = words[(int)(mAddress + relative_base_offset)];
+                    }
+                catch
+                {
+                    Console.WriteLine("Operation [Read] from address = {0}  the arrays size = {1}", mAddress + relative_base_offset, words.Count);
+                    throw;
+                }
+                    
+            }
             return res;
         }
         private void WriteMemory(Int64 mAddress, Int64 mode, Int64 mvalue, ref List<Int64> words)
@@ -118,7 +130,18 @@ namespace MyClasses
             if (mode == 0 || mode == 1)
                 words[(int)mAddress] = mvalue;
             if (mode == 2)
-                words[(int)(mAddress + relative_base_offset)] = mvalue;
+            {
+                try
+                {
+                    words[(int)(mAddress + relative_base_offset)] = mvalue;
+                }
+                catch
+                {
+                    Console.WriteLine("Operation [Write] to address = {0}  the arrays size = {1}", mAddress + relative_base_offset, words.Count);
+                    throw;
+                }
+            }
+                
         }
         private void Add(List<Int64> words)
         {
