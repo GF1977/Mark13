@@ -65,28 +65,48 @@ namespace MyClassTemplate
 
 
             // Puzzle #1
+            Int64 nRes;
             int nCount = 0;
-            for (int X = 0; X < 50; X++)
+            int X;
+            for (X = 0; X < 50; X++)
                 for (int Y = 0; Y < 50; Y++)
                 {
                     List<Int64> commands = new List<Int64>(commands_vanile);
-                    //Console.SetCursorPosition(Y, X);
-                    Int64 nRes = RunTheProgramm(X, Y, commands);
-                    if (nRes == 0) //the drone is stationary (0)
-                    {
-                        //Console.Write(".");
-                    }
-                    else if (nRes == 1) //the drone is being pulled by something (1)
-                    {
-                        //Console.Write("#");
+                    nRes = RunTheProgramm(X, Y, commands);
+                    if (nRes == 1) //the drone is being pulled by something (1)
                         nCount++;
-                    }
                 }
-            Console.WriteLine("Result: {0}", nCount);
+            Console.WriteLine("Part One: {0}", nCount);
+
+
+            nCount = 0;
+            int nTestX = 100;
+
+            X = nTestX;
+            int nFirstY = 0;
+            nRes=0;
+            Int64 nResPrev;
+                for (int Y = 0; Y < 2000; Y++)
+                {
+                    List<Int64> commands = new List<Int64>(commands_vanile);
+
+                    nResPrev = nRes;
+                    nRes = RunTheProgramm(X, Y, commands);
+                    if (nRes == 1 & nResPrev == 0)
+                        nFirstY = Y;
+
+
+                    if (nRes == 1) //the drone is being pulled by something (1)
+                        nCount++;
+                }
+
+
+            // Some magic math to get preliminary start X based on the beam triangle
+            X = (nFirstY * 99  + nTestX* 100) /nCount;
 
             // Puzle #2
             bool bStop = false;
-            for (int X = 1060; X < 10000 && !bStop; X+=1)
+            for (; X < 10000 && !bStop; X+=1)
             {
                 Int64 nRes1 = 0;
                 int Y = -1;
@@ -117,36 +137,13 @@ namespace MyClassTemplate
 
                     if (nRes1 == 1 && nRes2 == 1 && nRes3 == 1 && nRes4 == 1)
                     {
-                        Console.WriteLine("X = {0}      Y = {1} ", X, Y);
+                        Console.WriteLine("Part Two: {0}", X*10000 + Y);
                         bStop = true;
                         break;
                     }
                 }
 
             }
-
-
-
-            //    for (int X = 9000; X < 10000; X += 1)
-            //{
-            //    List<Int64> commands1 = new List<Int64>(commands_vanile);
-            //    Int64 nRes1 = RunTheProgramm(X, X, commands1);
-
-            //    List<Int64> commands2 = new List<Int64>(commands_vanile);
-            //    Int64 nRes2 = RunTheProgramm(X+99, X, commands2);
-
-            //    List<Int64> commands3 = new List<Int64>(commands_vanile);
-            //    Int64 nRes3 = RunTheProgramm(X, X+99, commands3);
-
-            //    List<Int64> commands4 = new List<Int64>(commands_vanile);
-            //    Int64 nRes4 = RunTheProgramm(X+99, X+99, commands4);
-
-
-            //    if (nRes1 == 1 && nRes2 == 1 && nRes3 == 1 && nRes4 == 1)
-            //    {
-            //        Console.WriteLine("X = {0}      Y = {1} ", X, X);
-            //    }
-            //}
         }
     }
 }
