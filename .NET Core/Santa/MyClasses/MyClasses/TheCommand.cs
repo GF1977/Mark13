@@ -17,6 +17,13 @@ namespace MyClasses
         private static myArgument ArgOne;
         private static myArgument ArgTwo;
         private static myArgument ArgThree;
+
+        public TheCommand()
+        {
+            relative_base_offset = 0;
+            Step = 0;
+        }
+
         public TheCommand(Int64 nStep, ref List<Int64> words)
         {
             Int64 word = words[(int)nStep];
