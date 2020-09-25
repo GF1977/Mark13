@@ -25,7 +25,7 @@ namespace Puzzle18
     public struct Cost
     {
         public int nCost;
-        public string Keys;
+        public List<Node> Res;// = new List<Node>;
     }
 
     public struct TheMap
@@ -201,17 +201,20 @@ namespace Puzzle18
         static int nX = 0;
         static int nY = 0;
         static int nSteps = 0;
+        static int nMinSteps = 0;
         static int nKeysNumber = 0;
         static int nAbsoluteMin = int.MaxValue;
         static List<string> myInput = new List<string>();
         static List<TheMap> MapVanile = new List<TheMap>();
         static List<TheMap> Map = new List<TheMap>();
         static Cost[] CostArray;
+        //static string sBestPath = "";
 
         static char[] Directions = { 'W', 'E', 'N', 'S' };
         static void Main(string[] args)
         {
-            
+            Console.Clear();
+
             StreamReader file = new StreamReader(@".\data.txt");
 
             while (!file.EndOfStream)
@@ -222,28 +225,41 @@ namespace Puzzle18
 
             Labirint = new char[nRoomDimensionX, nRoomDimensionY];
 
-            Console.WindowHeight = 70;
-            Console.WindowWidth = nRoomDimensionX + 50;
+            //Console.WindowHeight = 70;
+            //Console.WindowWidth = nRoomDimensionX + 50;
 
             LabirintPrefill(myInput);
             ResetLabirint();
 
             CostArray = new Cost[Nodes.Count * Nodes.Count];
-            CalculateRouteCost();
+            // Console.WriteLine("Cost precalculation...");
+            //CalculateRouteCost();
+            //Console.WriteLine("Cost precalculation has been finished");
 
             //ShowLabirint();
             //FromAtoB();
 
-            
+
             //List<TheMap> Map = new List<TheMap>();
             DrawTheMap(ref MapVanile);
-            RunForestRun();
+
+            nMinSteps = int.MaxValue;
+
+            string sArgument = "";
+            if (args.Count() > 0)
+                sArgument = args[0];
+            else
+                sArgument = "upfzilkjqcdovxthgnymw";
+
+            //RunForestRun2(sArgument);
+
+
 
             //Console.Write("Enter the Start  point: ");
             //string sStart = Console.ReadLine();
             //Node nFirstKey = Nodes.Find(n => n.cValue == sStart[0]);
 
-            //RunForestRun(nFirstKey);
+            RunForestRun();
             
 
         }
@@ -336,37 +352,24 @@ namespace Puzzle18
 
                 while (nKeysNumber > 0)
                 {
-
+                    int nMinSteps = int.MaxValue;
                     if (lOptions[nKeysNumberEtalon - nKeysNumber].Count == 0)
-                    {
-                        int nMinSteps = int.MaxValue;
                         foreach (Node N in Nodes)
-                        {
                             if (N.isKey())
                             {
+
                                 Res = GetRoute(nodeStart, N);
                                 if (Res.Count > 1 && N.GetRouteCost() > 0 && nMinSteps > Res.Count)
                                 {
-
                                     nMinSteps = Res.Count;
                                     lOptions[nKeysNumberEtalon - nKeysNumber].Add(N.nID);
                                 }
 
                             }
-                        }
-
-                    }
-
+                       
 
                     nodeEnd = Nodes.Find(n => n.nID == lOptions[(nKeysNumberEtalon - nKeysNumber)].ElementAt(0));
-                    int mySteps;
-                    if (nodeEnd.isKey() && (nodeStart.isKey() || nodeStart.cValue == '@'))
-                        mySteps = Map.Find(n => n.nId == nodeStart.nID).Routes.Find(n => n.nId == nodeEnd.nID).nSteps;
-
-
                     Res = GetRoute(nodeStart, nodeEnd);
-
-
 
 
                     if (Res.Count > 1)
@@ -413,89 +416,152 @@ namespace Puzzle18
             }
         }
 
-        private static void RunForestRun2()
+        private static void  RunForestRun2(string sMyWay = "")
         {
+            int nNotificationStep = 0;
+            string sBestPath = "";
             int nKeysNumberEtalon = 0;
             foreach (Node N in Nodes)
                 if (N.isKey())
                     nKeysNumberEtalon++;
 
-            nKeysNumber = nKeysNumberEtalon;
 
+            long A = 0;
+            //nKeysNumberEtalon -= 10;
+
+            List<String>[] lOptions = new List<String>[nKeysNumberEtalon+1];
+            for (int i = 0; i < nKeysNumberEtalon+1; i++)
+                lOptions[i] = new List<String>();
 
             Node nodeStart;
             Node nodeEnd;
-            while (nKeysNumber>0)
+
+            bool bStart = true;
+            while (bStart || lOptions[0].Count > 0)
             {
+                A = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                bStart = false;
+                nKeysNumber = 0;
+                string sPath = "";
+                ResetLabirint();
+                nSteps = 0;
+                int i = 0;
 
+                nodeStart = Nodes.Find(n => n.cValue == '@');
+                while (nKeysNumber < nKeysNumberEtalon)
+                {
 
+                    List<Node> Res = new List<Node>();
+                    List<String> Ways = new List<String>();
 
-                List<Node> Res = new List<Node>();
-                List<String> Ways = new List<String>();
-                String way = "";
-                foreach (Node NStart in Nodes)
-                    foreach (Node NEnd in Nodes)
+                    
+
+                    if (lOptions[nKeysNumber].Count == 0)
                     {
-                        if (NStart.cValue == '@' && NEnd.cValue != '@' && NEnd.nID != 0  && !NEnd.isDoor() && !(NStart.cValue == '.' || NEnd.cValue == '.'))
-                        {
-                            Res = GetRoute(NStart, NEnd, false);
-                            int nDoorCount = 0;
-                            int nKeyCount = 0;
-                            foreach (Node N in Res)
+                            foreach (Node NEnd in Nodes)
                             {
-                                if (N.isDoor() && !N.bOpened)
-                                    nDoorCount++;
+                            if (NEnd.isKey())//.cValue != '@' && NEnd.nID != 0 && !NEnd.isDoor() && !(NStart.cValue == '.' || NEnd.cValue == '.' && nodeStart.cValue == '@' && ))
+                                {
+                                    int nDoorCount = 0;
+                                    Res = GetRoute(nodeStart, NEnd);
+                                    if (Res.Count > 1)
+                                    {
+                                        foreach (Node N in Res)
+                                            if (N.isDoor() && !N.bOpened) nDoorCount++;
 
-                                if (N.isKey())
-                                    nKeyCount++;
-
+                                        if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) && !sMyWay.Contains(NEnd.cValue.ToString()))
+                                            lOptions[nKeysNumber].Add(NEnd.cValue.ToString());
+                                    }
+                                }
                             }
-                            way = "From " + NStart.cValue + " To " + NEnd.cValue + " = " + Res[0].GetRouteCost() + " Keys: " + nKeyCount + " Doors: " + nDoorCount;
-                            Ways.Add(way);
-                            //Console.WriteLine(way);
+                    }
+
+
+                    char cValue = (char)0;
+                    if (sMyWay != "" && (nKeysNumber + sMyWay.Length) >= nKeysNumberEtalon)  // For end        "------xyz"
+                    {
+                        cValue = sMyWay[i];
+                        i++;
+                    }
+                    else
+                        cValue = lOptions[nKeysNumber].First().ToCharArray()[0];
+
+
+                    sPath += cValue;
+                    nodeEnd = Nodes.Find(n => n.cValue == cValue);
+                    //nodeStart = Nodes.Find(n => n.cValue == '@');
+
+                    
+
+                    Res = GetRoute(nodeStart, nodeEnd);
+
+                    
+
+                    if (Res.Count > 1)
+                    {
+                        nKeysNumber++;
+                        Nodes.Find(n => n.cValue == '@').cValue = '.';
+                        char cKey = nodeEnd.pickKey();
+
+                        Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == cKey.ToString().ToUpper());
+                        if (!(nodeDoor is null))
+                            nodeDoor.OpenDoor();
+
+                        nSteps += nodeEnd.GetRouteCost();
+                        nodeStart = nodeEnd;
+                    }
+                    else
+                        break;
+
+
+                    if (nKeysNumber == nKeysNumberEtalon)
+                    {
+                        int j = sMyWay.Length+1;
+                        lOptions[nKeysNumber-j].RemoveAt(0);
+                        while (true)
+                        {
+                            if (lOptions[nKeysNumber - j].Count() == 0)
+                                lOptions[nKeysNumber - j - 1].RemoveAt(0);
+                            else
+                                break;
+                            j++;
                         }
                     }
 
-                foreach (String S in Ways)
-                    if (S.Last() == '0')
-                        Console.WriteLine(S);
-
-
-                Console.WriteLine("Current steps made: {0}", nSteps);
-                Console.WriteLine("Enter the next point: ");
-                string sStart = Console.ReadLine();
-                nodeEnd = Nodes.Find(n => n.cValue == sStart[0]);
-
-                nodeStart = Nodes.Find(n => n.cValue == '@');
-
-                Res = GetRoute(nodeStart, nodeEnd);
-
-
-                if (Res.Count > 1)
-                {
-                    nKeysNumber--;
-                    Nodes.Find(n => n.cValue == '@').cValue = '.';
-                    char cKey = nodeEnd.pickKey();
-                   
-                    Node nodeDoor = Nodes.Find(n => n.cValue.ToString() == cKey.ToString().ToUpper());
-                    if (!(nodeDoor is null))
-                        nodeDoor.OpenDoor();
-
-                    nSteps += nodeEnd.GetRouteCost();
-                    nodeStart = nodeEnd;
+                    
                 }
-                else
-                    break;
+
+
+                if (nSteps < nMinSteps)
+                {
+                    sBestPath = sPath;
+                    nMinSteps = nSteps;
+                    Console.SetCursorPosition(0, 0);
+                    Console.Write("                                                        ");
+                    Console.SetCursorPosition(0, 0);
+                    Console.Write("Best one: {0} Steps: {1}", sPath, nSteps);
+                }
+
+                A = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() -  A;
+                if (nNotificationStep == 0)
+                {
+                    Console.SetCursorPosition(0, 3);
+                    Console.Write("                                                                                 ");
+                    Console.SetCursorPosition(0, 3);
+                    Console.WriteLine("Current:  {0} Steps: {1}   Time: {2}", sPath, nSteps, A);
+                    nNotificationStep = 20;
+                }
+                nNotificationStep--;
+
 
 
             }
-
-            Console.WriteLine("------------------------------------");
-            Console.WriteLine("Current steps made: {0}", nSteps);
-
+            Console.SetCursorPosition(0, 10);
+            Console.WriteLine("--------------------");
+            Console.WriteLine("{0} Steps: {1}", sBestPath, nMinSteps);
         }
 
-        private static bool GetNewOrder(ref List<int>[] lOptions)
+            private static bool GetNewOrder(ref List<int>[] lOptions)
         {
             bool res = false;
             for (int i = 30; i >= 0; i--)
@@ -713,17 +779,17 @@ namespace Puzzle18
 
                     if (Start != End && !Start.isTunnel() && !End.isTunnel())
                     {
-                        List<Node> Res = GetRoute(Start, End,false);
+                        List<Node> Res = GetRoute(Start, End,true);
                         //Console.WriteLine("From: {0} to {1} - Cost = {2}", Start.cValue, End.cValue, Res[0].GetRouteCost());
                         //if (Res.Count == 0)
                         //    CostArray[Start.nID * End.nID].Keys = Start.cValue.ToString() + End.cValue.ToString() + "-LOCKED";
                         //else
                         //CostArray[Start.nID * End.nID].Keys = Start.cValue.ToString() + End.cValue.ToString() + "-OPENED";
                         CostArray[Start.nID * End.nID].nCost = Res.Count;
+                        CostArray[Start.nID * End.nID].Res = Res;
                     }
                     else
                     {
-                        CostArray[Start.nID * End.nID].Keys = "";
                         CostArray[Start.nID * End.nID].nCost = 0;
                     }
                 }
