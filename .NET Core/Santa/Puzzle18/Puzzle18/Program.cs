@@ -282,7 +282,7 @@ namespace Puzzle18
 
             nMinSteps = int.MaxValue;
 
-            RunForestRun();
+            RunForestRun("efziblupad");
             Console.WriteLine(DateTime.Now);
 
 
@@ -347,7 +347,7 @@ namespace Puzzle18
             return permutations;
         }
 
-        private static void  RunForestRun()
+        private static void  RunForestRun(string sBegin)
         {
             
             int nNotificationStep = 0;
@@ -357,7 +357,7 @@ namespace Puzzle18
                 if (N.isKey())
                     nKeysNumberEtalon++;
 
-            int nStepLimit = 5;// nKeysNumberEtalon;
+            int nStepLimit =  nKeysNumberEtalon;
             nKeysNumberEtalon = nStepLimit;
 
             List<String>[] lOptions = new List<String>[nKeysNumberEtalon+1];
@@ -387,27 +387,31 @@ namespace Puzzle18
                     int n = 0;
                     if (lOptions[nKeysNumber].Count == 0)
                     {
+
+                        if (nKeysNumber < sBegin.Length)
+                            lOptions[nKeysNumber].Add(sBegin[nKeysNumber].ToString());
+                        else
                             foreach (Node NEnd in Nodes)
-                            if (NEnd.isKey())
+                                if (NEnd.isKey())
                                 {
-                                OptimalPath OP = CalculatedPaths[nodeStart.nID, NEnd.nID];
-                                int nDoorCount = OP.sDoors.Length;
-                                Res = OP.Path;
+                                    OptimalPath OP = CalculatedPaths[nodeStart.nID, NEnd.nID];
+                                    int nDoorCount = OP.sDoors.Length;
+                                    Res = OP.Path;
                                     if (Res.Count > 1)
                                     {
-                                    foreach (char C in OP.sDoors)
-                                        if (FoundKeys.Contains(C.ToString().ToLower())) 
-                                            nDoorCount--;
+                                        foreach (char C in OP.sDoors)
+                                            if (FoundKeys.Contains(C.ToString().ToLower()))
+                                                nDoorCount--;
 
 
-                                    if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) &&  OP.nSteps < nMinSteps) 
-                                    {
-                                        nMinSteps = OP.nSteps+50;
-                                        lOptions[nKeysNumber].Add(NEnd.cValue.ToString());
-                                        n++;
-                                    }
-                                    //if (n >= 4)
-                                    //    break;
+                                        if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) && OP.nSteps < nMinSteps)
+                                        {
+                                            nMinSteps = OP.nSteps + 50;
+                                            lOptions[nKeysNumber].Add(NEnd.cValue.ToString());
+                                            n++;
+                                        }
+                                        //if (n >= 4)
+                                        //    break;
                                     }
                                 }
                     }
