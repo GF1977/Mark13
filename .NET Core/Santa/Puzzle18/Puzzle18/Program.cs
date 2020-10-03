@@ -194,6 +194,8 @@ namespace Puzzle18
         public string sKeys;
         public int nDoors;
         public int nKeys;
+        public char cStart;
+        public char cEnd;
 
         public OptimalPath(List<Node> Res)
             {
@@ -203,6 +205,8 @@ namespace Puzzle18
                 nDoors = 0;
                 nKeys = 0;
                 nSteps = Res[0].GetRouteCost();
+                cStart = Res.First().cValue;
+                cEnd = Res.Last().cValue;
 
                 foreach (Node N in Res)
                     {
@@ -235,7 +239,6 @@ namespace Puzzle18
         static int nSteps = 0;
         static int nMinSteps = 0;
         static int nKeysNumber = 0;
-        static int nAbsoluteMin = int.MaxValue;
         static List<string> myInput = new List<string>();
         static List<TheMap> MapVanile = new List<TheMap>();
         static List<TheMap> Map = new List<TheMap>();
@@ -248,6 +251,7 @@ namespace Puzzle18
         static void Main(string[] args)
         {
             Console.Clear();
+            Console.WriteLine(DateTime.Now);
 
             StreamReader file = new StreamReader(@".\data.txt");
 
@@ -264,17 +268,25 @@ namespace Puzzle18
 
             CalculatedPaths = new OptimalPath[Nodes.Count, Nodes.Count];
             CalculateRouteCost();
+            //for(int i=0;i<Nodes.Count;i++)
+            //    for (int j = 0; j < Nodes.Count; j++)
+            //    {
+            //        if(CalculatedPaths[i, j].cStart == '@' && (CalculatedPaths[i, j].cEnd >= 'a' && CalculatedPaths[i, j].cEnd <= 'z'))
+            //        Console.WriteLine("From: @ to {0}  - Doors:{1}  {2}.   Keys:{3} {4}", CalculatedPaths[i, j].cEnd, CalculatedPaths[i,j].nDoors, CalculatedPaths[i, j].sDoors, CalculatedPaths[i, j].nKeys, CalculatedPaths[i, j].sKeys);
+
+            //    }
 
 
 
-            DrawTheMap(ref MapVanile);
+                    DrawTheMap(ref MapVanile);
 
             nMinSteps = int.MaxValue;
 
             RunForestRun();
+            Console.WriteLine(DateTime.Now);
 
 
-            
+
 
         }
 
@@ -337,6 +349,7 @@ namespace Puzzle18
 
         private static void  RunForestRun()
         {
+            
             int nNotificationStep = 0;
             string sBestPath = "";
             int nKeysNumberEtalon = 0;
@@ -344,6 +357,8 @@ namespace Puzzle18
                 if (N.isKey())
                     nKeysNumberEtalon++;
 
+            int nStepLimit = 5;// nKeysNumberEtalon;
+            nKeysNumberEtalon = nStepLimit;
 
             List<String>[] lOptions = new List<String>[nKeysNumberEtalon+1];
             for (int i = 0; i < nKeysNumberEtalon+1; i++)
@@ -366,32 +381,40 @@ namespace Puzzle18
                 nodeStart = Nodes.Find(n => n.cValue == '@');
                 while (nKeysNumber < nKeysNumberEtalon)
                 {
-
                     List<Node> Res = new List<Node>();
+                    int nMinSteps = int.MaxValue;
                   
-
+                    int n = 0;
                     if (lOptions[nKeysNumber].Count == 0)
                     {
                             foreach (Node NEnd in Nodes)
                             if (NEnd.isKey())
                                 {
-                                int nDoorCount = CalculatedPaths[nodeStart.nID, NEnd.nID].sDoors.Length;
-                                Res = CalculatedPaths[nodeStart.nID, NEnd.nID].Path;
+                                OptimalPath OP = CalculatedPaths[nodeStart.nID, NEnd.nID];
+                                int nDoorCount = OP.sDoors.Length;
+                                Res = OP.Path;
                                     if (Res.Count > 1)
                                     {
-                                    foreach (char C in CalculatedPaths[nodeStart.nID, NEnd.nID].sDoors)
+                                    foreach (char C in OP.sDoors)
                                         if (FoundKeys.Contains(C.ToString().ToLower())) 
-                                            nDoorCount--; 
-                                    
+                                            nDoorCount--;
 
-                                        if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()))
-                                            lOptions[nKeysNumber].Add(NEnd.cValue.ToString());
+
+                                    if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) &&  OP.nSteps < nMinSteps) 
+                                    {
+                                        nMinSteps = OP.nSteps+50;
+                                        lOptions[nKeysNumber].Add(NEnd.cValue.ToString());
+                                        n++;
+                                    }
+                                    //if (n >= 4)
+                                    //    break;
                                     }
                                 }
                     }
 
-
                     char cValue = lOptions[nKeysNumber].First().ToCharArray()[0];
+                    //if (nKeysNumber == 0)
+                        //cValue = 'e';
 
 
                     sPath += cValue;
@@ -415,7 +438,7 @@ namespace Puzzle18
                         break;
 
 
-                    if (nKeysNumber == nKeysNumberEtalon)
+                    if (nKeysNumber == nKeysNumberEtalon || nKeysNumber == nStepLimit)
                     {
                         int j = 1;
                         lOptions[nKeysNumber-j].RemoveAt(0);
@@ -437,9 +460,9 @@ namespace Puzzle18
                 {
                     sBestPath = sPath;
                     nMinSteps = nSteps;
-                    Console.SetCursorPosition(0, 0);
+                    Console.SetCursorPosition(0, 2);
                     Console.Write("                                                    ");
-                    Console.SetCursorPosition(0, 0);
+                    Console.SetCursorPosition(0, 2);
                     Console.Write("Best one: {0} Steps: {1}", sPath, nSteps);
                 }
 
@@ -449,14 +472,14 @@ namespace Puzzle18
                     Console.Write("                                                   ");
                     Console.SetCursorPosition(0, 3);
                     Console.WriteLine("Current:  {0} Steps: {1}", sPath, nSteps);
-                    nNotificationStep = 10000;
+                    nNotificationStep = 100;
                 }
                 nNotificationStep--;
 
 
 
             }
-            Console.SetCursorPosition(0, 10);
+            Console.SetCursorPosition(0, 5);
             Console.WriteLine("--------------------");
             Console.WriteLine("{0} Steps: {1}", sBestPath, nMinSteps);
         }
