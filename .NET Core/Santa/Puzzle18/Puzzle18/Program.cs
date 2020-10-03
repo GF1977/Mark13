@@ -282,7 +282,7 @@ namespace Puzzle18
 
             nMinSteps = int.MaxValue;
 
-            RunForestRun("efziblupad");
+            RunForestRun("efz",10);
             Console.WriteLine(DateTime.Now);
 
 
@@ -347,7 +347,7 @@ namespace Puzzle18
             return permutations;
         }
 
-        private static void  RunForestRun(string sBegin)
+        private static void  RunForestRun(string sBegin, int nStepLimit = 0)
         {
             
             int nNotificationStep = 0;
@@ -357,8 +357,10 @@ namespace Puzzle18
                 if (N.isKey())
                     nKeysNumberEtalon++;
 
-            int nStepLimit =  nKeysNumberEtalon;
-            nKeysNumberEtalon = nStepLimit;
+            if (nStepLimit > 0)
+                nKeysNumberEtalon = nStepLimit;
+
+
 
             List<String>[] lOptions = new List<String>[nKeysNumberEtalon+1];
             for (int i = 0; i < nKeysNumberEtalon+1; i++)
@@ -442,7 +444,7 @@ namespace Puzzle18
                         break;
 
 
-                    if (nKeysNumber == nKeysNumberEtalon || nKeysNumber == nStepLimit)
+                    if (nKeysNumber == nKeysNumberEtalon )//|| nKeysNumber == nStepLimit)
                     {
                         int j = 1;
                         lOptions[nKeysNumber-j].RemoveAt(0);
