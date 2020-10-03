@@ -236,7 +236,7 @@ namespace Puzzle18
         static List<Node> NodesVanila = new List<Node>();
         static int nX = 0;
         static int nY = 0;
-        static int nSteps = 0;
+       // static int nSteps = 0;
         static int nMinSteps = 0;
         static int nKeysNumber = 0;
         static List<string> myInput = new List<string>();
@@ -281,8 +281,18 @@ namespace Puzzle18
                     DrawTheMap(ref MapVanile);
 
             nMinSteps = int.MaxValue;
+            List<string> lBestOptions = new List<string>();
 
-            RunForestRun("efz",10);
+            lBestOptions = RunForestRun("", 12);
+            //lBestOptions = RunForestRun("e", 12);
+
+
+
+            foreach(string S in lBestOptions)
+            {
+                RunForestRun(S);
+            }
+
             Console.WriteLine(DateTime.Now);
 
 
@@ -347,12 +357,16 @@ namespace Puzzle18
             return permutations;
         }
 
-        private static void  RunForestRun(string sBegin, int nStepLimit = 0)
+        private static List<string>  RunForestRun(string sBegin, int nStepLimit = 0)
         {
+            ResetLabirint();
+
+            List<string> lResultat = new List<string>();
             
-            int nNotificationStep = 0;
             string sBestPath = "";
             int nKeysNumberEtalon = 0;
+            nMinSteps = int.MaxValue;
+
             foreach (Node N in Nodes)
                 if (N.isKey())
                     nKeysNumberEtalon++;
@@ -378,7 +392,7 @@ namespace Puzzle18
                 ResetLabirint();
 
 
-                nSteps = 0;
+                int nSteps = 0;
 
                 nodeStart = Nodes.Find(n => n.cValue == '@');
                 while (nKeysNumber < nKeysNumberEtalon)
@@ -412,16 +426,11 @@ namespace Puzzle18
                                             lOptions[nKeysNumber].Add(NEnd.cValue.ToString());
                                             n++;
                                         }
-                                        //if (n >= 4)
-                                        //    break;
                                     }
                                 }
                     }
 
                     char cValue = lOptions[nKeysNumber].First().ToCharArray()[0];
-                    //if (nKeysNumber == 0)
-                        //cValue = 'e';
-
 
                     sPath += cValue;
                     nodeEnd = Nodes.Find(n => n.cValue == cValue);
@@ -434,8 +443,7 @@ namespace Puzzle18
                     {
                         nKeysNumber++;
                         Nodes.Find(n => n.cValue == '@').cValue = '.';
-                        char cKey = nodeEnd.pickKey();
-                        FoundKeys += cKey;
+                        FoundKeys += nodeEnd.pickKey(); 
 
                         nSteps += CalculatedPaths[nodeStart.nID, nodeEnd.nID].nSteps;
                         nodeStart = nodeEnd;
@@ -466,28 +474,38 @@ namespace Puzzle18
                 {
                     sBestPath = sPath;
                     nMinSteps = nSteps;
-                    Console.SetCursorPosition(0, 2);
-                    Console.Write("                                                    ");
-                    Console.SetCursorPosition(0, 2);
-                    Console.Write("Best one: {0} Steps: {1}", sPath, nSteps);
+                    //Console.SetCursorPosition(0, 2);
+                    //Console.Write("                                                    ");
+                    //Console.SetCursorPosition(0, 2);
+                    //Console.WriteLine("Best one: {0} Steps: {1}", sPath, nSteps);
+
+
+                    if (lResultat.Count > 10)
+                        lResultat.RemoveAt(0);
+
+                    lResultat.Add(sPath);
+
                 }
 
-                if (nNotificationStep == 0)
-                {
-                    Console.SetCursorPosition(0, 3);
-                    Console.Write("                                                   ");
-                    Console.SetCursorPosition(0, 3);
-                    Console.WriteLine("Current:  {0} Steps: {1}", sPath, nSteps);
-                    nNotificationStep = 100;
-                }
-                nNotificationStep--;
+                //if (nNotificationStep == 0)
+                //{
+                //    Console.SetCursorPosition(0, 3);
+                //    Console.Write("                                                   ");
+                //    Console.SetCursorPosition(0, 3);
+                //    Console.WriteLine("Current:  {0} Steps: {1}", sPath, nSteps);
+                //    nNotificationStep = 100;
+                //}
+                //nNotificationStep--;
 
 
 
             }
-            Console.SetCursorPosition(0, 5);
-            Console.WriteLine("--------------------");
+            //Console.SetCursorPosition(0, 5);
+            //Console.WriteLine("--------------------");
             Console.WriteLine("{0} Steps: {1}", sBestPath, nMinSteps);
+
+            lResultat.Reverse();
+            return lResultat;
         }
 
             private static bool GetNewOrder(ref List<int>[] lOptions)
@@ -524,7 +542,8 @@ namespace Puzzle18
                     nodeDoor.OpenDoor();
 
                 //Console.Write("{0}={1}  ", nodeEnd.cValue, nodeEnd.GetRouteCost());
-                nSteps += nodeEnd.GetRouteCost();
+                
+                //nSteps += nodeEnd.GetRouteCost();
 
                 // Pick the key
                 Nodes.Find(n => n.cValue == '@').cValue = '.';
@@ -601,7 +620,7 @@ namespace Puzzle18
             }
         }
 
-        private static int RunByThePath (string sPath)
+        private static void RunByThePath (string sPath)
         {
             //a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m
             //c, e, b, f, k, a, g, n, l, d, h, m, j, o, i, p
@@ -633,7 +652,6 @@ namespace Puzzle18
             }
 
 
-            return nSteps;
         }
 
 
@@ -661,7 +679,7 @@ namespace Puzzle18
                     if (Connection.Value == nodeN.GetClosestID() && sNodetoNode.Length > Connection.Key.Length)
                         sNodetoNode = Connection.Key;
                 }
-                GoGoGo(sNodetoNode);
+                GoGoGo(sNodetoNode,0);
             }
 
             Console.SetCursorPosition(0, nRoomDimensionY + 2);
@@ -669,12 +687,12 @@ namespace Puzzle18
             Console.WriteLine("                                           ");
             Console.SetCursorPosition(0, nRoomDimensionY + 2);
             Console.WriteLine("Steps: {0,5}", nodeFinish.GetRouteCost());
-            Console.WriteLine("Steps: {0,5}", nSteps); // for test purpose
 
         }
 
-        private static void GoGoGo(string sPath)
+        private static int GoGoGo(string sPath, int nSteps)
         {
+            
             if (!(sPath is null))
             {
                 Console.ForegroundColor = System.ConsoleColor.Red;
@@ -697,7 +715,7 @@ namespace Puzzle18
                 }
                 Console.ForegroundColor = System.ConsoleColor.Gray;
             }
-            
+            return nSteps;
         }
 
         private static void CalculateRouteCost()
