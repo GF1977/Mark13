@@ -293,8 +293,10 @@ namespace Puzzle18
 
 
             //Part Two
-            RunForestRun("", 0);
-            //lBestOptions = RunForestRun("", 10);
+            //RunForestRun("airsefzlo");
+            lBestOptions = RunForestRun("", 12);
+            RunForestRun(lBestOptions[0]);
+            //RunForestRun(lBestOptions[1]);
             //foreach(string S in lBestOptions)
             //{
             //    RunForestRun(S);
@@ -419,8 +421,15 @@ namespace Puzzle18
                         nodeStart = N;
 
 
-                            if (nKeysNumber < sBegin.Length)
-                                lOptions[nKeysNumber].Add(sBegin[nKeysNumber].ToString());
+                            if (nKeysNumber < sBegin.Length && lOptions[nKeysNumber].Count ==0)
+                            {
+                                Node NS = Nodes.Find(n => n.cValue == sBegin[nKeysNumber].ToString()[0]);
+                                foreach (Node N2 in nodeStartAll)
+                                    if (CalculatedPaths[NS.nID, N2.nID].Path != null)
+                                        lOptions[nKeysNumber].Add(sBegin[nKeysNumber].ToString() + ";" + N2.nID.ToString());
+                                
+
+                            }
                             else
                                 foreach (Node NEnd in Nodes)
                                     if (NEnd.isKey())
@@ -440,7 +449,7 @@ namespace Puzzle18
                                                 if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) && OP.nSteps < nMinSteps)
                                                 {
                                                     nMinSteps = OP.nSteps + 50;
-                                                    lOptions[nKeysNumber].Add(NEnd.cValue.ToString()+";"+nodeStart.nID.ToString());
+                                                    lOptions[nKeysNumber].Add(NEnd.cValue.ToString() + ";" + nodeStart.nID.ToString());
                                                     n++;
                                                 }
                                             }
