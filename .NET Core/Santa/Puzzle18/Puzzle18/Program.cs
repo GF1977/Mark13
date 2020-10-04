@@ -236,7 +236,7 @@ namespace Puzzle18
         static List<Node> NodesVanila = new List<Node>();
         static int nX = 0;
         static int nY = 0;
-       // static int nSteps = 0;
+        //static int nSteps = 0;
         static int nMinSteps = 0;
         static int nKeysNumber = 0;
         static List<string> myInput = new List<string>();
@@ -253,7 +253,7 @@ namespace Puzzle18
             Console.Clear();
             Console.WriteLine(DateTime.Now);
 
-            StreamReader file = new StreamReader(@".\data.txt");
+            StreamReader file = new StreamReader(@".\data2.txt");
 
             while (!file.EndOfStream)
                 myInput.Add(file.ReadLine());
@@ -268,14 +268,6 @@ namespace Puzzle18
 
             CalculatedPaths = new OptimalPath[Nodes.Count, Nodes.Count];
             CalculateRouteCost();
-            //for(int i=0;i<Nodes.Count;i++)
-            //    for (int j = 0; j < Nodes.Count; j++)
-            //    {
-            //        if(CalculatedPaths[i, j].cStart == '@' && (CalculatedPaths[i, j].cEnd >= 'a' && CalculatedPaths[i, j].cEnd <= 'z'))
-            //        Console.WriteLine("From: @ to {0}  - Doors:{1}  {2}.   Keys:{3} {4}", CalculatedPaths[i, j].cEnd, CalculatedPaths[i,j].nDoors, CalculatedPaths[i, j].sDoors, CalculatedPaths[i, j].nKeys, CalculatedPaths[i, j].sKeys);
-
-            //    }
-
 
 
                     DrawTheMap(ref MapVanile);
@@ -283,25 +275,16 @@ namespace Puzzle18
             nMinSteps = int.MaxValue;
             List<string> lBestOptions = new List<string>();
 
-            // Part One
-            //lBestOptions = RunForestRun("", 12);
-            //foreach(string S in lBestOptions)
-            //{
-            //    RunForestRun(S);
-            //}
-
-
-
-            //Part Two
-            //RunForestRun("airsefzlo");
+            // Part One 
             lBestOptions = RunForestRun("", 12);
-            RunForestRun(lBestOptions[0]);
-            //RunForestRun(lBestOptions[1]);
-            //foreach(string S in lBestOptions)
-            //{
-            //    RunForestRun(S);
-            //}
+            foreach (string S in lBestOptions)
+            {
+                RunForestRun(S);
+            }
 
+            // Part Two
+            //lBestOptions = RunForestRun("", 12);
+            //               RunForestRun(lBestOptions[0] );
 
             Console.WriteLine(DateTime.Now);
 
@@ -421,8 +404,9 @@ namespace Puzzle18
                         nodeStart = N;
 
 
-                            if (nKeysNumber < sBegin.Length && lOptions[nKeysNumber].Count ==0)
+                            if (nKeysNumber < sBegin.Length)
                             {
+                                lOptions[nKeysNumber].Clear();
                                 Node NS = Nodes.Find(n => n.cValue == sBegin[nKeysNumber].ToString()[0]);
                                 foreach (Node N2 in nodeStartAll)
                                     if (CalculatedPaths[NS.nID, N2.nID].Path != null)
@@ -430,6 +414,7 @@ namespace Puzzle18
                                 
 
                             }
+
                             else
                                 foreach (Node NEnd in Nodes)
                                     if (NEnd.isKey())
@@ -448,7 +433,7 @@ namespace Puzzle18
 
                                                 if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) && OP.nSteps < nMinSteps)
                                                 {
-                                                    nMinSteps = OP.nSteps + 50;
+                                                    nMinSteps = OP.nSteps+60;
                                                     lOptions[nKeysNumber].Add(NEnd.cValue.ToString() + ";" + nodeStart.nID.ToString());
                                                     n++;
                                                 }
@@ -508,10 +493,10 @@ namespace Puzzle18
                 {
                     sBestPath = sPath;
                     nMinSteps = nSteps;
-                    Console.SetCursorPosition(0, 2);
-                    Console.Write("                                                    ");
-                    Console.SetCursorPosition(0, 2);
-                    Console.WriteLine("Best one: {0} Steps: {1}", sPath, nSteps);
+                    //Console.SetCursorPosition(0, 2);
+                    //Console.Write("                                                    ");
+                    //Console.SetCursorPosition(0, 2);
+                    //Console.WriteLine("Best one: {0} Steps: {1}", sPath, nSteps);
 
 
                     if (lResultat.Count > 10)
@@ -521,21 +506,21 @@ namespace Puzzle18
 
                 }
 
-                if (nNotificationStep == 0)
-                {
-                    Console.SetCursorPosition(0, 3);
-                    Console.Write("                                                   ");
-                    Console.SetCursorPosition(0, 3);
-                    Console.WriteLine("Current:  {0} Steps: {1}", sPath, nSteps);
-                    nNotificationStep = 10000;
-                }
-                nNotificationStep--;
+                //if (nNotificationStep == 0)
+                //{
+                //    Console.SetCursorPosition(0, 3);
+                //    Console.Write("                                                   ");
+                //    Console.SetCursorPosition(0, 3);
+                //    Console.WriteLine("Current:  {0} Steps: {1}", sPath, nSteps);
+                //    nNotificationStep = 10000;
+                //}
+                //nNotificationStep--;
 
 
 
             }
             //Console.SetCursorPosition(0, 5);
-            //Console.WriteLine("--------------------");
+            Console.WriteLine("--------------------");
             Console.WriteLine("{0} Steps: {1}", sBestPath, nMinSteps);
 
             lResultat.Reverse();
