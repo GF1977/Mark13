@@ -283,15 +283,23 @@ namespace Puzzle18
             nMinSteps = int.MaxValue;
             List<string> lBestOptions = new List<string>();
 
-            lBestOptions = RunForestRun("", 12);
-            //lBestOptions = RunForestRun("e", 12);
+            // Part One
+            //lBestOptions = RunForestRun("", 12);
+            //foreach(string S in lBestOptions)
+            //{
+            //    RunForestRun(S);
+            //}
 
 
 
-            foreach(string S in lBestOptions)
-            {
-                RunForestRun(S);
-            }
+            //Part Two
+            RunForestRun("", 0);
+            //lBestOptions = RunForestRun("", 10);
+            //foreach(string S in lBestOptions)
+            //{
+            //    RunForestRun(S);
+            //}
+
 
             Console.WriteLine(DateTime.Now);
 
@@ -360,7 +368,7 @@ namespace Puzzle18
         private static List<string>  RunForestRun(string sBegin, int nStepLimit = 0)
         {
             ResetLabirint();
-
+            int nNotificationStep = 10000;
             List<string> lResultat = new List<string>();
             
             string sBestPath = "";
@@ -394,90 +402,107 @@ namespace Puzzle18
 
                 int nSteps = 0;
 
-                nodeStart = Nodes.Find(n => n.cValue == '@');
+                //nodeStart = Nodes.Find(n => n.cValue == '@');
+                List<Node> nodeStartAll = Nodes.FindAll(n => n.cValue == '@');
+                nodeStart = nodeStartAll[0];
+                
                 while (nKeysNumber < nKeysNumberEtalon)
-                {
-                    List<Node> Res = new List<Node>();
-                    int nMinSteps = int.MaxValue;
-                  
-                    int n = 0;
+                    {
+                        List<Node> Res = new List<Node>();
+                        int nMinSteps = int.MaxValue;
+
+                        int n = 0;
                     if (lOptions[nKeysNumber].Count == 0)
                     {
+                        foreach (Node N in nodeStartAll)
+                        {
+                        nodeStart = N;
 
-                        if (nKeysNumber < sBegin.Length)
-                            lOptions[nKeysNumber].Add(sBegin[nKeysNumber].ToString());
-                        else
-                            foreach (Node NEnd in Nodes)
-                                if (NEnd.isKey())
-                                {
-                                    OptimalPath OP = CalculatedPaths[nodeStart.nID, NEnd.nID];
-                                    int nDoorCount = OP.sDoors.Length;
-                                    Res = OP.Path;
-                                    if (Res.Count > 1)
+
+                            if (nKeysNumber < sBegin.Length)
+                                lOptions[nKeysNumber].Add(sBegin[nKeysNumber].ToString());
+                            else
+                                foreach (Node NEnd in Nodes)
+                                    if (NEnd.isKey())
                                     {
-                                        foreach (char C in OP.sDoors)
-                                            if (FoundKeys.Contains(C.ToString().ToLower()))
-                                                nDoorCount--;
-
-
-                                        if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) && OP.nSteps < nMinSteps)
+                                        OptimalPath OP = CalculatedPaths[nodeStart.nID, NEnd.nID];
+                                        if (OP.Path != null)
                                         {
-                                            nMinSteps = OP.nSteps + 50;
-                                            lOptions[nKeysNumber].Add(NEnd.cValue.ToString());
-                                            n++;
+                                            int nDoorCount = OP.sDoors.Length;
+                                            Res = OP.Path;
+                                            if (Res.Count > 1)
+                                            {
+                                                foreach (char C in OP.sDoors)
+                                                    if (FoundKeys.Contains(C.ToString().ToLower()))
+                                                        nDoorCount--;
+
+
+                                                if (nDoorCount == 0 && !lOptions[nKeysNumber].Contains(NEnd.cValue.ToString()) && OP.nSteps < nMinSteps)
+                                                {
+                                                    nMinSteps = OP.nSteps + 50;
+                                                    lOptions[nKeysNumber].Add(NEnd.cValue.ToString()+";"+nodeStart.nID.ToString());
+                                                    n++;
+                                                }
+                                            }
                                         }
                                     }
-                                }
-                    }
-
-                    char cValue = lOptions[nKeysNumber].First().ToCharArray()[0];
-
-                    sPath += cValue;
-                    nodeEnd = Nodes.Find(n => n.cValue == cValue);
-                   
-
-                    Res = CalculatedPaths[nodeStart.nID, nodeEnd.nID].Path;
-
-
-                    if (Res.Count > 1)
-                    {
-                        nKeysNumber++;
-                        Nodes.Find(n => n.cValue == '@').cValue = '.';
-                        FoundKeys += nodeEnd.pickKey(); 
-
-                        nSteps += CalculatedPaths[nodeStart.nID, nodeEnd.nID].nSteps;
-                        nodeStart = nodeEnd;
-                    }
-                    else
-                        break;
-
-
-                    if (nKeysNumber == nKeysNumberEtalon )//|| nKeysNumber == nStepLimit)
-                    {
-                        int j = 1;
-                        lOptions[nKeysNumber-j].RemoveAt(0);
-                        while (j<lOptions.Count()-1)
-                        {
-                            if (lOptions[nKeysNumber - j].Count() == 0)
-                                lOptions[nKeysNumber - j - 1].RemoveAt(0);
-                            else
-                                break;
-                            j++;
                         }
                     }
 
-                    
-                }
+                        string[] split = lOptions[nKeysNumber].First().Split(';');
+                        char cValue = split[0].ToCharArray()[0];
+                        int nNodeStartNumber = Int32.Parse(split[1]);
+                        nodeStart = Nodes.Find(n => n.nID == nNodeStartNumber);
+    
+                        sPath += cValue;
+                        nodeEnd = Nodes.Find(n => n.cValue == cValue);
 
+
+                        Res = CalculatedPaths[nodeStart.nID, nodeEnd.nID].Path;
+
+
+                        if (Res.Count > 1)
+                        {
+                            nKeysNumber++;
+                        //Nodes.Find(n => n.cValue == '@').cValue = '.';
+                            
+                            nodeStart.cValue = '.';
+                            FoundKeys += nodeEnd.pickKey();
+
+                            nSteps += CalculatedPaths[nodeStart.nID, nodeEnd.nID].nSteps;
+                            nodeStartAll.Find(n => n.nID == nodeStart.nID).nID = nodeEnd.nID;
+                            nodeStart = nodeEnd;
+                        }
+                        else
+                            break;
+
+
+                        if (nKeysNumber == nKeysNumberEtalon)//|| nKeysNumber == nStepLimit)
+                        {
+                            int j = 1;
+                            lOptions[nKeysNumber - j].RemoveAt(0);
+                            while (j < lOptions.Count() - 1)
+                            {
+                                if (lOptions[nKeysNumber - j].Count() == 0)
+                                    lOptions[nKeysNumber - j - 1].RemoveAt(0);
+                                else
+                                    break;
+                                j++;
+                            }
+                        }
+
+
+                    }
+                
 
                 if (nSteps < nMinSteps)
                 {
                     sBestPath = sPath;
                     nMinSteps = nSteps;
-                    //Console.SetCursorPosition(0, 2);
-                    //Console.Write("                                                    ");
-                    //Console.SetCursorPosition(0, 2);
-                    //Console.WriteLine("Best one: {0} Steps: {1}", sPath, nSteps);
+                    Console.SetCursorPosition(0, 2);
+                    Console.Write("                                                    ");
+                    Console.SetCursorPosition(0, 2);
+                    Console.WriteLine("Best one: {0} Steps: {1}", sPath, nSteps);
 
 
                     if (lResultat.Count > 10)
@@ -487,15 +512,15 @@ namespace Puzzle18
 
                 }
 
-                //if (nNotificationStep == 0)
-                //{
-                //    Console.SetCursorPosition(0, 3);
-                //    Console.Write("                                                   ");
-                //    Console.SetCursorPosition(0, 3);
-                //    Console.WriteLine("Current:  {0} Steps: {1}", sPath, nSteps);
-                //    nNotificationStep = 100;
-                //}
-                //nNotificationStep--;
+                if (nNotificationStep == 0)
+                {
+                    Console.SetCursorPosition(0, 3);
+                    Console.Write("                                                   ");
+                    Console.SetCursorPosition(0, 3);
+                    Console.WriteLine("Current:  {0} Steps: {1}", sPath, nSteps);
+                    nNotificationStep = 10000;
+                }
+                nNotificationStep--;
 
 
 
