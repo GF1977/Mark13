@@ -106,7 +106,7 @@ namespace Puzzle20
                 this.bVisited = bVisited;
             }
 
-            public bool isVisited()
+            public bool IsVisited()
             {
                 return this.bVisited;
             }
@@ -116,7 +116,7 @@ namespace Puzzle20
                 this.bOpened = true;
             }
 
-            public bool isKey()
+            public bool IsKey()
             {
                 if (this.cValue >= 97 && this.cValue <= 122)
                     return true;
@@ -124,7 +124,7 @@ namespace Puzzle20
                     return false;
             }
 
-            public bool isDoor()
+            public bool IsDoor()
             {
                 if (this.cValue >= 65 && this.cValue <= 90)
                     return true;
@@ -134,10 +134,10 @@ namespace Puzzle20
 
 
 
-            public char pickKey()
+            public char PickKey()
             {
                 char cKey = '.';
-                if (this.isKey())
+                if (this.IsKey())
                 {
                     cKey = this.cValue;
                     this.cValue = '@';
@@ -148,7 +148,7 @@ namespace Puzzle20
             }
 
 
-            public bool isTunnel()
+            public bool IsTunnel()
             {
                 if (this.cValue == '@' || (this.cValue >= 97 && this.cValue <= 122) || (this.cValue >= 65 && this.cValue <= 90))
                     return false;
@@ -171,7 +171,7 @@ namespace Puzzle20
         static List<string> myInput = new List<string>();
 
 
-        static void Main(string[] args)
+        static void Main()
         {
             Console.Clear();
             Console.WriteLine(DateTime.Now);
@@ -181,7 +181,7 @@ namespace Puzzle20
             while (!file.EndOfStream)
                 myInput.Add(file.ReadLine());
 
-            nRoomDimensionX = myInput[0].Length-1;
+            nRoomDimensionX = myInput[0].Length ;
             nRoomDimensionY = myInput.Count;
 
             Labirint = new char[nRoomDimensionX, nRoomDimensionY];
@@ -207,52 +207,92 @@ namespace Puzzle20
                 }
 
 
+            // Gate recognising
+            for (int y = 0; y < nRoomDimensionY; y++)
+                for (int x = 0; x < nRoomDimensionX; x++)
+                {
+                    char cCenter    = Labirint[x, y];
+                    char cRight     = (char)0;
+                    char cDown      = (char)0;
+                    char cLeft      = (char)0;
+                    char cUp        = (char)0;
+
+                    if (cCenter == '.')
+                    {
+                        if (x < nRoomDimensionX - 2)
+                        {
+                            cRight = Labirint[x + 1, y];
+                            if (cRight != '.' && cRight != '#')
+                            {
+                               // Labirint[x + 1, y] = '#';
+                                Node N = new Node(x , y, 'G');
+                                N.sGate = cRight.ToString() + Labirint[x + 2, y];
+                                NodesVanila.Add(N);
+
+                            }
+
+                        }
+
+                        if (x >= 2)
+                        {
+                            cLeft = Labirint[x - 1, y];
+                            if (cLeft != '.' && cLeft != '#')
+                            {
+                                //Labirint[x, y] = '#';
+                                Node N = new Node(x, y, 'G');
+                                N.sGate = Labirint[x - 2, y] + cLeft.ToString();
+                                NodesVanila.Add(N);
+                            }
+                        }
+
+                        if (y < nRoomDimensionY - 2)
+                        {
+                            cUp = Labirint[x, y + 1];
+                            if (cUp != '.' && cUp != '#')
+                            {
+                               // Labirint[x, y] = '#';
+                                Node N = new Node(x, y, 'G');
+                                N.sGate = cUp.ToString() + Labirint[x, y + 2];
+                                NodesVanila.Add(N);
+                            }
+                        }
+                        if (y >= 2)
+                        {
+                            cDown = Labirint[x, y - 1];
+                            if (cDown != '.' && cDown != '#')
+                            {
+                               // Labirint[x, y] = '#';
+                                Node N = new Node(x, y, 'G');
+                                N.sGate = Labirint[x, y - 2] + cDown.ToString();
+                                NodesVanila.Add(N);
+                            }
+                        }
+                    }
+                }
+
+           // Console.SetBufferSize(nRoomDimensionX, nRoomDimensionY);
 
             for (int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
                 {
-                    char cCenter = Labirint[x, y];
-                    char cRight = (char)0;
-                    char cDown = (char)0;
-
-                    if (cCenter != '.' && cCenter != '#')
-                    {
-                        if(x< nRoomDimensionX-1)
-                            cRight = Labirint[x + 1, y];
-
-                        if (y < nRoomDimensionY - 1)
-                            cDown = Labirint[x, y + 1];
-
-                        if (cRight != '.' && cRight != '#')
-                        {
-                            Labirint[x + 1, y] = '+';
-                            Node N = new Node(x+1, y, Labirint[x+1, y]);
-                            N.sGate = cCenter.ToString() + cRight.ToString();
-                            NodesVanila.Add(N);
-                        }
-                        if (cDown != '.' && cDown != '#' && cDown != 0)
-                        {
-                            int nUporDown = 1;
-                            string sGate = cCenter.ToString() + cDown.ToString();
-                            if (cCenter == 'Z')
-                            {
-                                nUporDown = -2;
-                                sGate = "ZZ";
-                            }
-
-                            Labirint[1, y+nUporDown] = '+';
-                            Node N = new Node(x , y + nUporDown, Labirint[x , y + nUporDown]);
-                            N.sGate = sGate;
-                            NodesVanila.Add(N);
-                        }
-
-                    }
+                    Console.SetCursorPosition(x, y);
+                    Console.Write(Labirint[x, y].ToString());
                 }
 
+            Console.ForegroundColor = ConsoleColor.Red;
+            foreach(Node N in NodesVanila)
+            {
 
+                if (N.cValue == 'G')
+                {
+                    Console.SetCursorPosition(N.X, N.Y);
+                    Console.Write("*");
+                }
+            }
 
-            // adding intersections modes
-            for (int y = 0; y < nRoomDimensionY; y++)
+                    // adding intersections modes
+                    for (
+                int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
                     if (IsIntersection(x, y))
                     {
@@ -379,7 +419,7 @@ namespace Puzzle20
                             Nodes[nIndex].SetRouteCost(nTotalCost);
                             Nodes[nIndex].SetClosestID(Start.nID);
                         }
-                        if (!Nodes[nIndex].isVisited())
+                        if (!Nodes[nIndex].IsVisited())
                             NextNodes.Add(Nodes[nIndex]);
 
                     }
