@@ -187,6 +187,18 @@ namespace Puzzle20
             Labirint = new char[nRoomDimensionX, nRoomDimensionY];
             LabirintPrefill(myInput);
 
+
+
+            foreach (Node N in NodesVanila)
+                Nodes.Add(N);
+
+            Node nStart  = NodesVanila.Find(n => n.sGate == "AA");
+            Node nFinish = NodesVanila.Find(n => n.sGate == "ZZ");
+            List<Node>  NodesResult = new List<Node>();
+
+            NodesResult = GetRoute(nStart, nFinish);
+            Console.WriteLine(NodesResult[0].GetRouteCost().ToString());
+
         }
 
 
@@ -222,25 +234,23 @@ namespace Puzzle20
                         if (x < nRoomDimensionX - 2)
                         {
                             cRight = Labirint[x + 1, y];
-                            if (cRight != '.' && cRight != '#')
+                            if (cRight != '.' && cRight != '#' && cRight != '+')
                             {
-                               // Labirint[x + 1, y] = '#';
                                 Node N = new Node(x , y, 'G');
                                 N.sGate = cRight.ToString() + Labirint[x + 2, y];
+                                Labirint[x + 1  , y] = '#';
                                 NodesVanila.Add(N);
-
                             }
-
                         }
 
                         if (x >= 2)
                         {
                             cLeft = Labirint[x - 1, y];
-                            if (cLeft != '.' && cLeft != '#')
+                            if (cLeft != '.' && cLeft != '#' && cLeft != '+')
                             {
-                                //Labirint[x, y] = '#';
                                 Node N = new Node(x, y, 'G');
                                 N.sGate = Labirint[x - 2, y] + cLeft.ToString();
+                                Labirint[x - 1 , y] = '#';
                                 NodesVanila.Add(N);
                             }
                         }
@@ -248,29 +258,29 @@ namespace Puzzle20
                         if (y < nRoomDimensionY - 2)
                         {
                             cUp = Labirint[x, y + 1];
-                            if (cUp != '.' && cUp != '#')
+                            if (cUp != '.' && cUp != '#' && cUp != '+')
                             {
-                               // Labirint[x, y] = '#';
                                 Node N = new Node(x, y, 'G');
                                 N.sGate = cUp.ToString() + Labirint[x, y + 2];
+                                Labirint[x, y + 1] = '#';
                                 NodesVanila.Add(N);
                             }
                         }
                         if (y >= 2)
                         {
                             cDown = Labirint[x, y - 1];
-                            if (cDown != '.' && cDown != '#')
+                            if (cDown != '.' && cDown != '#' && cDown != '+')
                             {
-                               // Labirint[x, y] = '#';
                                 Node N = new Node(x, y, 'G');
                                 N.sGate = Labirint[x, y - 2] + cDown.ToString();
+                                Labirint[x, y - 1] = '#';
                                 NodesVanila.Add(N);
                             }
                         }
                     }
                 }
 
-           // Console.SetBufferSize(nRoomDimensionX, nRoomDimensionY);
+          //  Console.SetBufferSize(nRoomDimensionX, nRoomDimensionY);
 
             for (int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
@@ -279,20 +289,19 @@ namespace Puzzle20
                     Console.Write(Labirint[x, y].ToString());
                 }
 
-            Console.ForegroundColor = ConsoleColor.Red;
-            foreach(Node N in NodesVanila)
-            {
+            //Console.ForegroundColor = ConsoleColor.Red;
+            //foreach (Node N in NodesVanila)
+            //{
 
-                if (N.cValue == 'G')
-                {
-                    Console.SetCursorPosition(N.X, N.Y);
-                    Console.Write("*");
-                }
-            }
+            //    if (N.cValue == 'G')
+            //    {
+            //        Console.SetCursorPosition(N.X, N.Y);
+            //        Console.Write("O");
+            //    }
+            //}
 
-                    // adding intersections modes
-                    for (
-                int y = 0; y < nRoomDimensionY; y++)
+            // adding intersections modes
+            for (int y = 0; y < nRoomDimensionY; y++)
                 for (int x = 0; x < nRoomDimensionX; x++)
                     if (IsIntersection(x, y))
                     {
@@ -302,9 +311,28 @@ namespace Puzzle20
             // Explore each node
             for (int i = 1; i < NodesVanila.Count; i++)
             {
-                Node Ctemp = NodesVanila[i];
-                ExploreNode(ref Ctemp);
-                NodesVanila[i] = Ctemp;
+                    Node Ctemp = NodesVanila[i];
+                    ExploreNode(ref Ctemp);
+                    NodesVanila[i] = Ctemp;
+            }
+
+
+        }
+
+
+        private static bool IsGate(int x, int y)
+        {
+            if (NodesVanila.Find(node => node.X == x && node.Y == y) == null)
+                return false;
+
+            else
+            {
+                char cvalue = NodesVanila.Find(node => node.X == x && node.Y == y).cValue;
+
+                if (cvalue == 'G')
+                    return true;
+                else
+                    return false;
             }
         }
 
@@ -321,6 +349,8 @@ namespace Puzzle20
             else
                 return false;
         }
+
+
         private static char ReadRoom(int x, int y)
         {
             if (x >= 0 && x < nRoomDimensionX && y >= 0 && y < nRoomDimensionY)
@@ -359,7 +389,7 @@ namespace Puzzle20
                     sPath += cDirection;
                     cDirection = NextStep(x, y, cDirection);
 
-                    if (IsIntersection(x, y) || (ReadRoom(x, y) != '#' && ReadRoom(x, y) != '.' && ReadRoom(x, y) != '+'))
+                    if (IsIntersection(x, y) || IsGate(x,y) || (ReadRoom(x, y) != '#' && ReadRoom(x, y) != '.' )) //&& ReadRoom(x, y) != '+'))
                     {
                         C.bExplored[i] = true;
                         int nNextNode = NodesVanila.Find(node => node.X == x && node.Y == y).nID;
@@ -375,6 +405,25 @@ namespace Puzzle20
                 if (Connection.Value == 0)
                     C.Connection.Remove(Connection.Key);
             }
+
+            // if this is a Gate
+            if (C.cValue == 'G' && C.sGate != "AA" && C.sGate != "ZZ")
+            {
+                string cDirToGate = "";
+                char cDirection = C.Connection.Last().Key.First();
+                if (cDirection == 'S') cDirToGate = "N";
+                if (cDirection == 'N') cDirToGate = "S";
+                if (cDirection == 'W') cDirToGate = "E";
+                if (cDirection == 'E') cDirToGate = "W";
+
+                string sCsGate = C.sGate;
+                int nCnID = C.nID;
+
+                int nNextNode = NodesVanila.Find(n => n.sGate == sCsGate && n.nID != nCnID).nID;
+                C.Connection.Add(cDirToGate, nNextNode);
+            }
+
+
         }
         private static char NextStep(int X, int Y, char cDirection)
         {
@@ -389,7 +438,7 @@ namespace Puzzle20
             return cNewDirection;
         }
 
-        private static List<Node> GetRoute(Node Start, Node End, bool bCheckDoor = true)
+        private static List<Node> GetRoute(Node Start, Node End)
         {
             List<Node> Res = new List<Node>();
             if (Start == End)
@@ -408,13 +457,12 @@ namespace Puzzle20
             while (NextNodes.Count > 0) //(NextNodes.Count > 0 && !bStop)
             {
                 Start = NextNodes[0];
-                if (Start.bOpened || !bCheckDoor) // only if it is opened
                     foreach (KeyValuePair<string, int> Connection in Start.Connection)
                     {
 
                         int nIndex = Nodes.FindIndex(n => n.nID == Connection.Value);
                         int nTotalCost = Connection.Key.Length + Start.GetRouteCost();
-                        if (Nodes[nIndex].GetRouteCost() > nTotalCost && (Nodes[nIndex].bOpened || !bCheckDoor))
+                        if (Nodes[nIndex].GetRouteCost() > nTotalCost )
                         {
                             Nodes[nIndex].SetRouteCost(nTotalCost);
                             Nodes[nIndex].SetClosestID(Start.nID);
