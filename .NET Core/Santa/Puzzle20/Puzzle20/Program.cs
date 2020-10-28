@@ -282,12 +282,12 @@ namespace Puzzle20
 
           //  Console.SetBufferSize(nRoomDimensionX, nRoomDimensionY);
 
-            for (int y = 0; y < nRoomDimensionY; y++)
-                for (int x = 0; x < nRoomDimensionX; x++)
-                {
-                    Console.SetCursorPosition(x, y);
-                    Console.Write(Labirint[x, y].ToString());
-                }
+            //for (int y = 0; y < nRoomDimensionY; y++)
+            //    for (int x = 0; x < nRoomDimensionX; x++)
+            //    {
+            //        Console.SetCursorPosition(x, y);
+            //        Console.Write(Labirint[x, y].ToString());
+            //    }
 
             //Console.ForegroundColor = ConsoleColor.Red;
             //foreach (Node N in NodesVanila)
@@ -466,9 +466,11 @@ namespace Puzzle20
                         {
                             Nodes[nIndex].SetRouteCost(nTotalCost);
                             Nodes[nIndex].SetClosestID(Start.nID);
+                            Nodes[nIndex].Visited(false);
+
                         }
-                        if (!Nodes[nIndex].IsVisited())
-                            NextNodes.Add(Nodes[nIndex]);
+                    if (!Nodes[nIndex].IsVisited())
+                        NextNodes.Add(Nodes[nIndex]);
 
                     }
                 Start.Visited(true);
