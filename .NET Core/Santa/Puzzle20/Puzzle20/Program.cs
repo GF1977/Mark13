@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 
 namespace Puzzle20
@@ -36,7 +37,6 @@ namespace Puzzle20
             private int nClosestID;
             public bool bVisited;
             public string sGate;
-
 
             public Node(Node N)
             {
@@ -157,6 +157,15 @@ namespace Puzzle20
             }
 
 
+            public bool IsInner()
+            {
+                bool bRes = false;
+                if ((this.X > 3 && this.X < nRoomDimensionX - 3) && (this.Y > 3 && this.Y < nRoomDimensionY - 3))
+                    bRes = true;
+
+                return bRes;
+            }
+
 
         }
 
@@ -199,6 +208,13 @@ namespace Puzzle20
             NodesResult = GetRoute(nStart, nFinish);
             Console.WriteLine(NodesResult[0].GetRouteCost().ToString());
 
+
+            foreach (Node N in Nodes)
+            {
+                if (N.IsInner() && !N.IsTunnel())
+                    Console.WriteLine("Name {0},  X={1} ; Y={2} ", N.sGate, N.X, N.Y);
+            }
+
         }
 
 
@@ -233,6 +249,7 @@ namespace Puzzle20
                     {
                         if (x < nRoomDimensionX - 2)
                         {
+                            // Gates on the Right side
                             cRight = Labirint[x + 1, y];
                             if (cRight != '.' && cRight != '#' && cRight != '+')
                             {
@@ -241,10 +258,12 @@ namespace Puzzle20
                                 Labirint[x + 1  , y] = '#';
                                 NodesVanila.Add(N);
                             }
+                            
                         }
 
                         if (x >= 2)
                         {
+                            // Gates on the Left side
                             cLeft = Labirint[x - 1, y];
                             if (cLeft != '.' && cLeft != '#' && cLeft != '+')
                             {
@@ -257,6 +276,7 @@ namespace Puzzle20
 
                         if (y < nRoomDimensionY - 2)
                         {
+                            // Gates on the Top side
                             cUp = Labirint[x, y + 1];
                             if (cUp != '.' && cUp != '#' && cUp != '+')
                             {
@@ -268,6 +288,7 @@ namespace Puzzle20
                         }
                         if (y >= 2)
                         {
+                            // Gates on the Bottom side
                             cDown = Labirint[x, y - 1];
                             if (cDown != '.' && cDown != '#' && cDown != '+')
                             {
