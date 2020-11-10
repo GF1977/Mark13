@@ -16,6 +16,18 @@ namespace MyClassTemplate
         //OR T J
         //WALK
 
+        // Second PART
+        // NOT A J
+        // NOT C T
+        // AND D T
+        // AND H T
+        // OR T J
+        // NOT B T
+        // AND A T
+        // AND D T
+        // OR T J
+        // RUN
+
 
         static Int64 nProgrammStep = 0;
         static List<Int64> commands;
