@@ -53,6 +53,8 @@ namespace MyClassTemplate
                     {
                         Console.Write((char)nStatus);
                     }
+
+
                 }
             }
             while (nProgrammStep != 0);
