@@ -8,12 +8,24 @@ namespace MyClassTemplate
     class Program
     {
 
-        struct networkPackage
+        public class networkPackage
         {
-            public int destination;
-            public int X;
-            public int Y;
+            public Int64 source;
+            public Int64 destination;
+            public Int64 X;
+            public Int64 Y;
             public int XorY;  // 0 = X , 1 = Y
+            public bool isReady;
+
+            public networkPackage()
+            {
+                this.destination = -1;
+                this.source = -1;
+                this.X = -1;
+                this.Y = -1;
+                this.XorY = -1;
+                this.isReady = false;
+            }
         }
 
         static Int64[] nProgrammStep = new Int64[50];
@@ -21,6 +33,7 @@ namespace MyClassTemplate
         static bool[]  bAddressProvided = new bool[50];
         static List<networkPackage> PackagesQueue = new List<networkPackage>();
         static List<Int64> commands;
+        static networkPackage tempPackage;
 
         static void RunTheProgramm(int nComputerNumber)
         {
@@ -48,9 +61,15 @@ namespace MyClassTemplate
                         {
                             Console.WriteLine("Computer N:{0} has recieved package {1}", nComputerNumber, nPackage);
                             if (PackagesQueue[nPackage].XorY == 0)
+                            {
                                 nStartValue[nComputerNumber] = PackagesQueue[nPackage].X;
+                                PackagesQueue[nPackage].XorY = 1;
+                            }
                             else
+                            {
                                 nStartValue[nComputerNumber] = PackagesQueue[nPackage].Y;
+                                PackagesQueue.RemoveAt(nPackage);
+                            }
                         }
                         else
                         {
@@ -63,7 +82,32 @@ namespace MyClassTemplate
 
                 if (myCommand.GetCommand() == 4) // Output
                 {
-                    Console.WriteLine(nStatus.ToString());
+                    if (tempPackage.X >= 0 && tempPackage.Y < 0)
+                    {
+                        tempPackage.Y = nStatus;
+                        tempPackage.XorY = 0;  // 0 means X is the first value to read
+                        tempPackage.isReady = true;
+                        PackagesQueue.Add(tempPackage);
+
+                        Console.WriteLine("Computer N:{0} Package is ready:", nComputerNumber);
+                        Console.WriteLine("                    Destination:{0}", tempPackage.destination.ToString());
+                        Console.WriteLine("                              X:{0}", tempPackage.X.ToString());
+                        Console.WriteLine("                              Y:{0}", tempPackage.Y.ToString());
+                    }
+
+                    if (tempPackage.source >= 0 && tempPackage.X < 0)
+                            tempPackage.X = nStatus;
+
+
+                    if (tempPackage.source < 0)
+                    {
+                        tempPackage.source = nComputerNumber;
+                        tempPackage.destination = nStatus;
+                    }
+
+
+                    if (tempPackage.isReady)
+                        tempPackage = new networkPackage();
                 }
 
 
@@ -79,6 +123,7 @@ namespace MyClassTemplate
             while (nProgrammStep[nComputerNumber] != 0);
         }
 
+
         static void Main(string[] args)
         {
 
@@ -90,10 +135,12 @@ namespace MyClassTemplate
             foreach (string word in words)
                 commands_vanile.Add(Int64.Parse(word));
 
-            for (int ii = 0; ii < 1000; ii++)
+            for (int ii = 0; ii < 200000; ii++)
                 commands_vanile.Add(0);
 
             commands = new List<Int64>(commands_vanile);
+
+            tempPackage = new networkPackage();
 
             for (int i = 0; i < 50; i++)
             {
