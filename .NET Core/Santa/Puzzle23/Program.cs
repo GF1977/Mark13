@@ -32,16 +32,18 @@ namespace MyClassTemplate
         static Int64[] nStartValue   = new Int64[50];
         static bool[]  bAddressProvided = new bool[50];
         static List<networkPackage> PackagesQueue = new List<networkPackage>();
-        static List<Int64> commands;
+        static List<Int64>[] commands = new List<Int64>[50];
         static networkPackage tempPackage;
+        static bool bStop;
+
 
         static void RunTheProgramm(int nComputerNumber)
         {
             Int64 nStatus;
             do
             {
-                TheCommand myCommand = new TheCommand(nProgrammStep[nComputerNumber], ref commands);
-                Int64[] res = myCommand.ExecuteOneCommand(nProgrammStep[nComputerNumber], nStartValue[nComputerNumber], commands);
+                TheCommand myCommand = new TheCommand(nProgrammStep[nComputerNumber], ref commands[nComputerNumber]);
+                Int64[] res = myCommand.ExecuteOneCommand(nProgrammStep[nComputerNumber], nStartValue[nComputerNumber], commands[nComputerNumber]);
                 nStatus = res[0];
                 nProgrammStep[nComputerNumber] = res[1];
 
@@ -51,30 +53,32 @@ namespace MyClassTemplate
                     if (!bAddressProvided[nComputerNumber])
                     {
                         bAddressProvided[nComputerNumber] = true;
-                        Console.WriteLine("Computer N:{0} Network address has been assigned", nComputerNumber);
+                        //Console.WriteLine("Computer N:{0} Network address has been assigned", nComputerNumber);
                     }
                     else
                     {
-                        Console.WriteLine("Computer N:{0} request for package", nComputerNumber);
+                        //Console.WriteLine("Computer N:{0} request for package", nComputerNumber);
                         int nPackage = PackagesQueue.FindIndex(n => n.destination == nComputerNumber);
                         if (nPackage >= 0)
                         {
-                            Console.WriteLine("Computer N:{0} has recieved package {1}", nComputerNumber, nPackage);
+                            //Console.WriteLine("{0} has recieved package {1} from {2}", nComputerNumber, nPackage, PackagesQueue[nPackage].source);
                             if (PackagesQueue[nPackage].XorY == 0)
                             {
                                 nStartValue[nComputerNumber] = PackagesQueue[nPackage].X;
                                 PackagesQueue[nPackage].XorY = 1;
+                                Console.WriteLine("{0}<-{1} X:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].X);
                             }
                             else
                             {
                                 nStartValue[nComputerNumber] = PackagesQueue[nPackage].Y;
+                                Console.WriteLine("{0}<-{1} Y:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].Y);
                                 PackagesQueue.RemoveAt(nPackage);
                             }
                         }
                         else
                         {
                             nStartValue[nComputerNumber] = -1;
-                            Console.WriteLine("Computer N:{0} is waiting for package", nComputerNumber);
+                            //Console.WriteLine("Computer N:{0} is waiting for package", nComputerNumber);
                             break;
                         }
                     }
@@ -107,7 +111,16 @@ namespace MyClassTemplate
 
 
                     if (tempPackage.isReady)
+                    {
+                        if (tempPackage.destination == 255)
+                        {
+                            Console.WriteLine("----------------------------------------------");
+                            Console.WriteLine("Y:{0}", tempPackage.Y.ToString());
+
+                            bStop = true;
+                        }
                         tempPackage = new networkPackage();
+                    }
                 }
 
 
@@ -126,7 +139,7 @@ namespace MyClassTemplate
 
         static void Main(string[] args)
         {
-
+            bStop = false;
             StreamReader file = new StreamReader(@".\data.txt");
             string line = file.ReadLine();
             string[] words = line.Split(',');
@@ -138,25 +151,28 @@ namespace MyClassTemplate
             for (int ii = 0; ii < 200000; ii++)
                 commands_vanile.Add(0);
 
-            commands = new List<Int64>(commands_vanile);
+
 
             tempPackage = new networkPackage();
 
             for (int i = 0; i < 50; i++)
             {
                 bAddressProvided[i] = false;
-                nStartValue[i] = 0;
+                nStartValue[i] = i;
                 nProgrammStep[i] = 0;
+                commands[i] = new List<Int64>(commands_vanile);
                 RunTheProgramm(i);
             }
 
 
-            while(true)
+            while(!bStop)
             for (int i = 0; i < 50; i++)
             {
                 RunTheProgramm(i);
             }
 
+
+            Console.ReadKey();
         }
 
 
