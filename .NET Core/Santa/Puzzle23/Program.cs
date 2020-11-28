@@ -26,6 +26,19 @@ namespace MyClassTemplate
                 this.XorY = -1;
                 this.isReady = false;
             }
+
+            public networkPackage(networkPackage NP)
+            {
+                this.destination = NP.destination;
+                this.source = NP.source;
+                this.X = NP.X;
+                this.Y = NP.Y;
+                this.XorY = NP.XorY;
+                this.isReady = NP.isReady;
+            }
+
+
+
         }
 
         static Int64[] nProgrammStep = new Int64[50];
@@ -34,8 +47,10 @@ namespace MyClassTemplate
         static List<networkPackage> PackagesQueue = new List<networkPackage>();
         static List<Int64>[] commands = new List<Int64>[50];
         static networkPackage tempPackage;
+        static networkPackage NatPackage;
         static bool bStop;
 
+        static Int64 NAT_Y;
 
         static void RunTheProgramm(int nComputerNumber)
         {
@@ -66,12 +81,12 @@ namespace MyClassTemplate
                             {
                                 nStartValue[nComputerNumber] = PackagesQueue[nPackage].X;
                                 PackagesQueue[nPackage].XorY = 1;
-                                Console.WriteLine("{0}<-{1} X:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].X);
+                                //Console.WriteLine("{0}<-{1} X:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].X);
                             }
                             else
                             {
                                 nStartValue[nComputerNumber] = PackagesQueue[nPackage].Y;
-                                Console.WriteLine("{0}<-{1} Y:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].Y);
+                                //Console.WriteLine("{0}<-{1} Y:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].Y);
                                 PackagesQueue.RemoveAt(nPackage);
                             }
                         }
@@ -91,12 +106,14 @@ namespace MyClassTemplate
                         tempPackage.Y = nStatus;
                         tempPackage.XorY = 0;  // 0 means X is the first value to read
                         tempPackage.isReady = true;
-                        PackagesQueue.Add(tempPackage);
 
-                        Console.WriteLine("Computer N:{0} Package is ready:", nComputerNumber);
-                        Console.WriteLine("                    Destination:{0}", tempPackage.destination.ToString());
-                        Console.WriteLine("                              X:{0}", tempPackage.X.ToString());
-                        Console.WriteLine("                              Y:{0}", tempPackage.Y.ToString());
+                        if(tempPackage.destination!=255)
+                            PackagesQueue.Add(tempPackage);
+
+                        //Console.WriteLine("Computer N:{0} Package is ready:", nComputerNumber);
+                        //Console.WriteLine("                    Destination:{0}", tempPackage.destination.ToString());
+                        //Console.WriteLine("                              X:{0}", tempPackage.X.ToString());
+                        //Console.WriteLine("                              Y:{0}", tempPackage.Y.ToString());
                     }
 
                     if (tempPackage.source >= 0 && tempPackage.X < 0)
@@ -112,26 +129,29 @@ namespace MyClassTemplate
 
                     if (tempPackage.isReady)
                     {
+                        // 255 - NAT
                         if (tempPackage.destination == 255)
                         {
-                            Console.WriteLine("----------------------------------------------");
-                            Console.WriteLine("Y:{0}", tempPackage.Y.ToString());
+                            if (NatPackage is null)
+                            {
+                                Console.WriteLine("--------------- PART ONE -------------------------------");
+                                Console.WriteLine("Y:{0}", tempPackage.Y.ToString());
+                            }
 
-                            bStop = true;
+                            NatPackage = new networkPackage(tempPackage);
+                            //bStop = true;
                         }
                         tempPackage = new networkPackage();
                     }
                 }
 
 
-                if (nStatus == 10)
-                {
-                    Console.WriteLine("");
-                }
-                else if (nStatus > 20 && nStatus < 128)
-                {
-                    Console.Write((char)nStatus);
-                }
+                //if (nStatus == 10)
+                //    Console.WriteLine("");
+
+                //else if (nStatus > 20 && nStatus < 128)
+                //    Console.Write((char)nStatus);
+
             }
             while (nProgrammStep[nComputerNumber] != 0);
         }
@@ -140,6 +160,8 @@ namespace MyClassTemplate
         static void Main(string[] args)
         {
             bStop = false;
+
+            NAT_Y = -1;
             StreamReader file = new StreamReader(@".\data.txt");
             string line = file.ReadLine();
             string[] words = line.Split(',');
@@ -165,12 +187,34 @@ namespace MyClassTemplate
             }
 
 
-            while(!bStop)
-            for (int i = 0; i < 50; i++)
+            while (!bStop)
             {
-                RunTheProgramm(i);
-            }
+                for (int i = 0; i < 50; i++)
+                {
+                    RunTheProgramm(i);
+                }
 
+                if (PackagesQueue.Count == 0 && NatPackage != null)
+                {
+                    NatPackage.destination = 0;
+                    PackagesQueue.Add(NatPackage);
+
+                    if (NatPackage.XorY > 0)
+                    {
+                        if (NAT_Y == NatPackage.Y)
+                        {
+                            Console.WriteLine("--------------- PART TWO -------------------------------");
+                            Console.WriteLine("Y:{0}", NAT_Y.ToString());
+                            bStop = true;
+
+                        }
+                        else
+                            NAT_Y = NatPackage.Y;
+                    }
+                }
+
+
+            }
 
             Console.ReadKey();
         }
