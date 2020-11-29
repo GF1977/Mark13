@@ -49,7 +49,7 @@ namespace MyClassTemplate
             for (int ii = 0; ii < 1000; ii++)
                 commands_vanile.Add(0);
 
-            List<Int64> commands = new List<Int64>(commands_vanile);
+            commands = new List<Int64>(commands_vanile);
 
             RunTheProgramm(StartValue);
         }
