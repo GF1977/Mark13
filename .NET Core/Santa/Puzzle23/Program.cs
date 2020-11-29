@@ -7,47 +7,43 @@ namespace MyClassTemplate
 {
     class Program
     {
-
-        public class networkPackage
+        public class networkPacket
         {
             public Int64 source;
-            public Int64 destination;
+            public Int64 destiNATion;
             public Int64 X;
             public Int64 Y;
-            public int XorY;  // 0 = X , 1 = Y
+            public char  XorY;  // Indicates which Value needs to be send
             public bool isReady;
 
-            public networkPackage()
+            public networkPacket()
             {
-                this.destination = -1;
+                this.destiNATion = -1;
                 this.source = -1;
                 this.X = -1;
                 this.Y = -1;
-                this.XorY = -1;
+                this.XorY = 'X';
                 this.isReady = false;
             }
 
-            public networkPackage(networkPackage NP)
+            public networkPacket(networkPacket NP)
             {
-                this.destination = NP.destination;
+                this.destiNATion = NP.destiNATion;
                 this.source = NP.source;
                 this.X = NP.X;
                 this.Y = NP.Y;
                 this.XorY = NP.XorY;
                 this.isReady = NP.isReady;
             }
-
-
-
         }
 
         static Int64[] nProgrammStep = new Int64[50];
         static Int64[] nStartValue   = new Int64[50];
         static bool[]  bAddressProvided = new bool[50];
-        static List<networkPackage> PackagesQueue = new List<networkPackage>();
+        static List<networkPacket> PacketsQueue = new List<networkPacket>();
         static List<Int64>[] commands = new List<Int64>[50];
-        static networkPackage tempPackage;
-        static networkPackage NatPackage;
+        static networkPacket tempPacket;
+        static networkPacket NATPacket;
         static bool bStop;
 
         static Int64 NAT_Y;
@@ -68,32 +64,26 @@ namespace MyClassTemplate
                     if (!bAddressProvided[nComputerNumber])
                     {
                         bAddressProvided[nComputerNumber] = true;
-                        //Console.WriteLine("Computer N:{0} Network address has been assigned", nComputerNumber);
                     }
                     else
                     {
-                        //Console.WriteLine("Computer N:{0} request for package", nComputerNumber);
-                        int nPackage = PackagesQueue.FindIndex(n => n.destination == nComputerNumber);
-                        if (nPackage >= 0)
+                        int nPacket = PacketsQueue.FindIndex(n => n.destiNATion == nComputerNumber);
+                        if (nPacket >= 0)
                         {
-                            //Console.WriteLine("{0} has recieved package {1} from {2}", nComputerNumber, nPackage, PackagesQueue[nPackage].source);
-                            if (PackagesQueue[nPackage].XorY == 0)
+                            if (PacketsQueue[nPacket].XorY == 'X')
                             {
-                                nStartValue[nComputerNumber] = PackagesQueue[nPackage].X;
-                                PackagesQueue[nPackage].XorY = 1;
-                                //Console.WriteLine("{0}<-{1} X:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].X);
+                                nStartValue[nComputerNumber] = PacketsQueue[nPacket].X;
+                                PacketsQueue[nPacket].XorY = 'Y';
                             }
                             else
                             {
-                                nStartValue[nComputerNumber] = PackagesQueue[nPackage].Y;
-                                //Console.WriteLine("{0}<-{1} Y:{2}", nComputerNumber, PackagesQueue[nPackage].source, PackagesQueue[nPackage].Y);
-                                PackagesQueue.RemoveAt(nPackage);
+                                nStartValue[nComputerNumber] = PacketsQueue[nPacket].Y;
+                                PacketsQueue.RemoveAt(nPacket);
                             }
                         }
-                        else
+                        else // new packet
                         {
                             nStartValue[nComputerNumber] = -1;
-                            //Console.WriteLine("Computer N:{0} is waiting for package", nComputerNumber);
                             break;
                         }
                     }
@@ -101,127 +91,110 @@ namespace MyClassTemplate
 
                 if (myCommand.GetCommand() == 4) // Output
                 {
-                    if (tempPackage.X >= 0 && tempPackage.Y < 0)
-                    {
-                        tempPackage.Y = nStatus;
-                        tempPackage.XorY = 0;  // 0 means X is the first value to read
-                        tempPackage.isReady = true;
+                    tempPacket = CreatePacket(tempPacket, nStatus, nComputerNumber);
 
-                        if(tempPackage.destination!=255)
-                            PackagesQueue.Add(tempPackage);
-
-                        //Console.WriteLine("Computer N:{0} Package is ready:", nComputerNumber);
-                        //Console.WriteLine("                    Destination:{0}", tempPackage.destination.ToString());
-                        //Console.WriteLine("                              X:{0}", tempPackage.X.ToString());
-                        //Console.WriteLine("                              Y:{0}", tempPackage.Y.ToString());
-                    }
-
-                    if (tempPackage.source >= 0 && tempPackage.X < 0)
-                            tempPackage.X = nStatus;
-
-
-                    if (tempPackage.source < 0)
-                    {
-                        tempPackage.source = nComputerNumber;
-                        tempPackage.destination = nStatus;
-                    }
-
-
-                    if (tempPackage.isReady)
+                    if (tempPacket.isReady)
                     {
                         // 255 - NAT
-                        if (tempPackage.destination == 255)
+                        if (tempPacket.destiNATion == 255)
                         {
-                            if (NatPackage is null)
-                            {
-                                Console.WriteLine("--------------- PART ONE -------------------------------");
-                                Console.WriteLine("Y:{0}", tempPackage.Y.ToString());
-                            }
+                            // Need to decetc first packet to 255 (NAT)
+                            if (NATPacket is null)
+                                Console.WriteLine("PART ONE   Y:{0}", tempPacket.Y.ToString());
 
-                            NatPackage = new networkPackage(tempPackage);
-                            //bStop = true;
+                            NATPacket = new networkPacket(tempPacket);
                         }
-                        tempPackage = new networkPackage();
+                        // NAT packet is not added to the queue
+                        else
+                            PacketsQueue.Add(tempPacket);
+
+                        tempPacket = new networkPacket();
                     }
                 }
-
-
-                //if (nStatus == 10)
-                //    Console.WriteLine("");
-
-                //else if (nStatus > 20 && nStatus < 128)
-                //    Console.Write((char)nStatus);
-
             }
             while (nProgrammStep[nComputerNumber] != 0);
         }
 
 
+        static networkPacket CreatePacket(networkPacket tempPacket, Int64 nValue, Int64 source)
+        {
+
+            if (tempPacket.source < 0)
+            {
+                tempPacket.source = source;
+                tempPacket.destiNATion = nValue;
+            }
+            else if (tempPacket.source >= 0 && tempPacket.X < 0)
+                tempPacket.X = nValue;
+            else if (tempPacket.X >= 0 && tempPacket.Y < 0)
+            {
+                tempPacket.Y = nValue;
+                tempPacket.XorY = 'X';
+                tempPacket.isReady = true;
+            }
+
+            return tempPacket;
+        }
+
         static void Main(string[] args)
         {
             bStop = false;
+            NAT_Y = -1; // Y value in NAT package to detecect two Y in a row
 
-            NAT_Y = -1;
-            StreamReader file = new StreamReader(@".\data.txt");
-            string line = file.ReadLine();
-            string[] words = line.Split(',');
+            StreamReader    file    = new StreamReader(@".\data.txt");
+            string          line    = file.ReadLine();
+            string[]        words   = line.Split(',');
 
-            List<Int64> commands_vanile = new List<Int64>();
+            List<Int64> commands_vanilla = new List<Int64>();
             foreach (string word in words)
-                commands_vanile.Add(Int64.Parse(word));
+                commands_vanilla.Add(Int64.Parse(word));
 
-            for (int ii = 0; ii < 200000; ii++)
-                commands_vanile.Add(0);
+            // Extending command space 
+            for (int ii = 0; ii < 200000; ii++) 
+                commands_vanilla.Add(0);
 
 
+            tempPacket = new networkPacket();
 
-            tempPackage = new networkPackage();
-
+            // initialization
             for (int i = 0; i < 50; i++)
             {
                 bAddressProvided[i] = false;
                 nStartValue[i] = i;
                 nProgrammStep[i] = 0;
-                commands[i] = new List<Int64>(commands_vanile);
+                commands[i] = new List<Int64>(commands_vanilla);
                 RunTheProgramm(i);
             }
 
-
+            // processing
             while (!bStop)
             {
+                // Part ONE
+                // Complete cycle - run all computers
                 for (int i = 0; i < 50; i++)
-                {
                     RunTheProgramm(i);
-                }
 
-                if (PackagesQueue.Count == 0 && NatPackage != null)
+                // Part TWO
+                // Checking the queue lenght and NAT package
+                if (PacketsQueue.Count == 0 && NATPacket != null)
                 {
-                    NatPackage.destination = 0;
-                    PackagesQueue.Add(NatPackage);
+                    NATPacket.destiNATion = 0;
+                    PacketsQueue.Add(NATPacket);
 
-                    if (NatPackage.XorY > 0)
+                    if (NATPacket.XorY == 'Y')
                     {
-                        if (NAT_Y == NatPackage.Y)
+                        if (NAT_Y == NATPacket.Y)
                         {
-                            Console.WriteLine("--------------- PART TWO -------------------------------");
-                            Console.WriteLine("Y:{0}", NAT_Y.ToString());
+                            Console.WriteLine("PART TWO   Y:{0}", NAT_Y.ToString());
                             bStop = true;
-
                         }
                         else
-                            NAT_Y = NatPackage.Y;
+                            NAT_Y = NATPacket.Y;
                     }
                 }
-
-
             }
-
+            Console.WriteLine("Press any key");
             Console.ReadKey();
         }
-
-
-
- 
-
     }
 }
