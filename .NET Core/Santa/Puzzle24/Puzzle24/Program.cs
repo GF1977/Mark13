@@ -8,12 +8,14 @@ namespace Puzzle24
  
     class Program
     {
+
         public static int nSize = 5;
+        public static Level[] AllTerras = new Level[200];
 
         public class Level
         {
             public char[,] nSlice;
-            public Level(int size)
+            public Level()
             {
                 nSlice = new char[nSize, nSize];
             }
@@ -38,16 +40,23 @@ namespace Puzzle24
         static void Main(string[] args)
         {
             bool bStop = false;
+            int nLevelID = 0;
+
 
             StreamReader file = new StreamReader(@".\data.txt");
             string line = file.ReadLine();
 
-
-            Level Terra    = new Level(nSize);
-            Level TerraNew = new Level(nSize);
-
-
+            Level Terra    = new Level();
+            Level TerraNew = new Level();
+            
+            for(int i=0;i<200;i++)
+                AllTerras[i] = new Level();
+            
             TerraNew.EmptyTerra();
+            AllTerras[100].CopyTerra(Terra);
+            
+            AllTerras[99].CopyTerra(TerraNew);
+            AllTerras[101].CopyTerra(TerraNew);
 
 
             int nRowNumber = 0;
@@ -69,12 +78,15 @@ namespace Puzzle24
 
 
 
-
+            //the main cycle - works till the goal is achieved
+            
             while (!bStop)
             {
                 int nTerraID = 0;
                 //ShowTerra(Terra, );
                 //Console.ReadKey();
+
+                // Part one = What is the biodiversity rating for the first layout that appears twice?
                 nBioDiversity = GetBiodiversity(Terra, nTerraID);
                 Int64 x = lBioDiversity.FindIndex(n => n == nBioDiversity); 
                 if (x>=0)
@@ -84,17 +96,21 @@ namespace Puzzle24
                     }
 
                 lBioDiversity.Add(nBioDiversity);
+                // Part one - end
 
 
+
+
+                while(nTerraID++ <= nLevelID)
                 for (int r = 0; r < nSize; r++)
                     for (int c = 0; c < nSize; c++)
                     {
                         int nNeighbors = 0;
 
-                        if (CheckNeighbors(r + 1, c + 0, Terra )) nNeighbors++;
-                        if (CheckNeighbors(r + 0, c + 1, Terra )) nNeighbors++;
-                        if (CheckNeighbors(r + 0, c - 1, Terra )) nNeighbors++;
-                        if (CheckNeighbors(r - 1, c + 0, Terra )) nNeighbors++;
+                            nNeighbors+=CheckNeighbors(r + 1, c + 0, Terra, nTerraID);
+                            nNeighbors+=CheckNeighbors(r + 0, c + 1, Terra, nTerraID);
+                            nNeighbors+=CheckNeighbors(r + 0, c - 1, Terra, nTerraID);
+                            nNeighbors+=CheckNeighbors(r - 1, c + 0, Terra, nTerraID);
 
                         TerraNew.nSlice[r, c] = Terra.nSlice[r, c];
 
@@ -113,28 +129,87 @@ namespace Puzzle24
         }
 
 
-        private static bool CheckNeighbors(int r, int c, Level Terra )
+        private static int CheckNeighbors(int r, int c, Level Terra, int nTerraID)
         {
-            bool bResult = false;
+            int bResult = 0;
+            
             if (IsValidCoordinate(r, c))
             {
                 
-                // it is center - need to check outer level
-                if(r==2 && c==2)
+                // to check inner level
+                if((r==1 && c==2) || (r == 2 && c == 1) || (r == 2 && c == 3) || (r == 3 && c == 2))
                 {
+                    if (r == 1 && c == 2)
+                    {
+                        bResult += GetNeighboursCount(nTerraID, "top");
+                    }
+                    if (r == 2 && c == 1)
+                    {
+                        bResult += GetNeighboursCount(nTerraID, "left");
+                    }
+                    if (r == 2 && c == 3)
+                    {
+                        bResult += GetNeighboursCount(nTerraID, "right");
+                    }
+                    if (r == 3 && c == 2)
+                    {
+                        bResult += GetNeighboursCount(nTerraID, "down");
+                    }
 
                 }
 
-
+                // no connection to recursive levels
                 if (Terra.nSlice[r, c] == '#')
-                    bResult = true;
+                    bResult ++;
 
             }
-            else
-                bResult = false;
+            else //  to check outer level
+            {
+                if (r < 0)
+                    if(AllTerras[100 + nTerraID].nSlice[1, 2] == '#')
+                        bResult++;
+
+                if (r >= nSize)
+                    if (AllTerras[100 + nTerraID].nSlice[3, 2] == '#')
+                        bResult++;
+
+                if (c < 0)
+                    if (AllTerras[100 + nTerraID].nSlice[2, 1] == '#')
+                        bResult++;
+
+                if (r >= nSize)
+                    if (AllTerras[100 + nTerraID].nSlice[2, 3] == '#')
+                        bResult++;
+            }
+
 
             return bResult;
         }
+
+        private static int GetNeighboursCount(int nTerraID, string position)
+        {
+            int result = 0;
+
+            if(position == "top")
+                for (int i = 0; i < nSize; i++)
+                    if (AllTerras[100 - nTerraID].nSlice[0, i] == '#') result++;
+
+            if (position == "down")
+                for (int i = 0; i < nSize; i++)
+                    if (AllTerras[100 - nTerraID].nSlice[4, i] == '#') result++;
+
+            if (position == "left")
+                for (int i = 0; i < nSize; i++)
+                    if (AllTerras[100 - nTerraID].nSlice[i, 0] == '#') result++;
+
+            if (position == "right")
+                for (int i = 0; i < nSize; i++)
+                    if (AllTerras[100 - nTerraID].nSlice[i, 4] == '#') result++;
+
+
+            return result;
+        }
+
 
         private static Int64 GetBiodiversity(Level Terra, int nTerraID =0 )
         {
