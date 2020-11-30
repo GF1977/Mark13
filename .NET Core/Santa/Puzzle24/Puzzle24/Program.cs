@@ -53,11 +53,6 @@ namespace Puzzle24
                 AllTerras[i] = new Level();
             
             TerraNew.EmptyTerra();
-            AllTerras[100].CopyTerra(Terra);
-            
-            AllTerras[99].CopyTerra(TerraNew);
-            AllTerras[101].CopyTerra(TerraNew);
-
 
             int nRowNumber = 0;
             while (line != null)
@@ -76,18 +71,22 @@ namespace Puzzle24
             Int64 nBioDiversity = 0;
             List<Int64> lBioDiversity = new List<Int64>();
 
+            AllTerras[100].CopyTerra(Terra);
+
+            AllTerras[99].CopyTerra(TerraNew);
+            AllTerras[101].CopyTerra(TerraNew);
 
 
             //the main cycle - works till the goal is achieved
-            
+
             while (!bStop)
             {
-                int nTerraID = 0;
-                //ShowTerra(Terra, );
-                //Console.ReadKey();
+                int nTerraID = 100;
+                ShowTerra(nTerraID);
+               // Console.ReadKey();
 
                 // Part one = What is the biodiversity rating for the first layout that appears twice?
-                nBioDiversity = GetBiodiversity(Terra, nTerraID);
+                nBioDiversity = GetBiodiversity(nTerraID);
                 Int64 x = lBioDiversity.FindIndex(n => n == nBioDiversity); 
                 if (x>=0)
                     {
@@ -99,29 +98,30 @@ namespace Puzzle24
                 // Part one - end
 
 
+                while (nTerraID - 100 <= nLevelID)
+                {
+                    for (int r = 0; r < nSize; r++)
+                        for (int c = 0; c < nSize; c++)
+                        {
+                            int nNeighbors = 0;
 
+                            nNeighbors += CheckNeighbors(r + 1, c + 0,  nTerraID);
+                            nNeighbors += CheckNeighbors(r + 0, c + 1,  nTerraID);
+                            nNeighbors += CheckNeighbors(r + 0, c - 1,  nTerraID);
+                            nNeighbors += CheckNeighbors(r - 1, c + 0,  nTerraID);
 
-                while(nTerraID++ <= nLevelID)
-                for (int r = 0; r < nSize; r++)
-                    for (int c = 0; c < nSize; c++)
-                    {
-                        int nNeighbors = 0;
+                            TerraNew.nSlice[r, c] = AllTerras[nTerraID].nSlice[r, c];
 
-                            nNeighbors+=CheckNeighbors(r + 1, c + 0, Terra, nTerraID);
-                            nNeighbors+=CheckNeighbors(r + 0, c + 1, Terra, nTerraID);
-                            nNeighbors+=CheckNeighbors(r + 0, c - 1, Terra, nTerraID);
-                            nNeighbors+=CheckNeighbors(r - 1, c + 0, Terra, nTerraID);
+                            if (nNeighbors != 1 && AllTerras[nTerraID].nSlice[r, c] == '#')
+                                TerraNew.nSlice[r, c] = '.';
 
-                        TerraNew.nSlice[r, c] = Terra.nSlice[r, c];
+                            if ((nNeighbors == 1 || nNeighbors == 2) && AllTerras[nTerraID].nSlice[r, c] == '.')
+                                TerraNew.nSlice[r, c] = '#';
+                        }
+                    nTerraID++;
+                }
 
-                        if (nNeighbors != 1 && Terra.nSlice[r, c] == '#')
-                            TerraNew.nSlice[r, c] = '.';
-
-                        if ((nNeighbors == 1 || nNeighbors == 2) && Terra.nSlice[r, c] == '.')
-                            TerraNew.nSlice[r, c] = '#';
-                    }
-
-                Terra.CopyTerra(TerraNew);
+                AllTerras[nTerraID - 1].CopyTerra(TerraNew);
                 
             }
             Console.WriteLine("Press any key");
@@ -129,56 +129,46 @@ namespace Puzzle24
         }
 
 
-        private static int CheckNeighbors(int r, int c, Level Terra, int nTerraID)
+        private static int CheckNeighbors(int r, int c, int nTerraID)
         {
             int bResult = 0;
             
             if (IsValidCoordinate(r, c))
             {
-                
-                // to check inner level
-                if((r==1 && c==2) || (r == 2 && c == 1) || (r == 2 && c == 3) || (r == 3 && c == 2))
+                // to check inner level  (nTerraID-1)
+                if ((r==1 && c==2) || (r == 2 && c == 1) || (r == 2 && c == 3) || (r == 3 && c == 2))
                 {
                     if (r == 1 && c == 2)
-                    {
-                        bResult += GetNeighboursCount(nTerraID, "top");
-                    }
+                        bResult += GetNeighboursCount(nTerraID-1, "top");
                     if (r == 2 && c == 1)
-                    {
-                        bResult += GetNeighboursCount(nTerraID, "left");
-                    }
+                        bResult += GetNeighboursCount(nTerraID-1, "left");
                     if (r == 2 && c == 3)
-                    {
-                        bResult += GetNeighboursCount(nTerraID, "right");
-                    }
+                        bResult += GetNeighboursCount(nTerraID-1, "right");
                     if (r == 3 && c == 2)
-                    {
-                        bResult += GetNeighboursCount(nTerraID, "down");
-                    }
-
+                        bResult += GetNeighboursCount(nTerraID-1, "down");
                 }
 
                 // no connection to recursive levels
-                if (Terra.nSlice[r, c] == '#')
+                if (AllTerras[nTerraID].nSlice[r, c] == '#')
                     bResult ++;
 
             }
             else //  to check outer level
             {
                 if (r < 0)
-                    if(AllTerras[100 + nTerraID].nSlice[1, 2] == '#')
+                    if(AllTerras[nTerraID+1].nSlice[1, 2] == '#')
                         bResult++;
 
                 if (r >= nSize)
-                    if (AllTerras[100 + nTerraID].nSlice[3, 2] == '#')
+                    if (AllTerras[nTerraID+1].nSlice[3, 2] == '#')
                         bResult++;
 
                 if (c < 0)
-                    if (AllTerras[100 + nTerraID].nSlice[2, 1] == '#')
+                    if (AllTerras[nTerraID+1].nSlice[2, 1] == '#')
                         bResult++;
 
                 if (r >= nSize)
-                    if (AllTerras[100 + nTerraID].nSlice[2, 3] == '#')
+                    if (AllTerras[nTerraID+1].nSlice[2, 3] == '#')
                         bResult++;
             }
 
@@ -192,32 +182,32 @@ namespace Puzzle24
 
             if(position == "top")
                 for (int i = 0; i < nSize; i++)
-                    if (AllTerras[100 - nTerraID].nSlice[0, i] == '#') result++;
+                    if (AllTerras[nTerraID].nSlice[0, i] == '#') result++;
 
             if (position == "down")
                 for (int i = 0; i < nSize; i++)
-                    if (AllTerras[100 - nTerraID].nSlice[4, i] == '#') result++;
+                    if (AllTerras[nTerraID].nSlice[4, i] == '#') result++;
 
             if (position == "left")
                 for (int i = 0; i < nSize; i++)
-                    if (AllTerras[100 - nTerraID].nSlice[i, 0] == '#') result++;
+                    if (AllTerras[nTerraID].nSlice[i, 0] == '#') result++;
 
             if (position == "right")
                 for (int i = 0; i < nSize; i++)
-                    if (AllTerras[100 - nTerraID].nSlice[i, 4] == '#') result++;
+                    if (AllTerras[nTerraID].nSlice[i, 4] == '#') result++;
 
 
             return result;
         }
 
 
-        private static Int64 GetBiodiversity(Level Terra, int nTerraID =0 )
+        private static Int64 GetBiodiversity(int nTerraID)
         {
             Int64 Result =0;
 
             for (int r = 0; r < nSize; r++)
                 for (int c = 0; c < nSize; c++)
-                    if (Terra.nSlice[ r, c] == '#')
+                    if (AllTerras[nTerraID].nSlice[ r, c] == '#')
                         Result += (Int64)Math.Pow(2, r * nSize + c);
 
             return Result;
@@ -235,13 +225,13 @@ namespace Puzzle24
 
 
 
-        private static void ShowTerra(char[,] Terra)
+        private static void ShowTerra(int nTerraID)
         {
             Console.SetCursorPosition(0, 0);
             for (int r = 0; r < nSize ; r++)
             {
                 for (int c = 0; c < nSize; c++)
-                    Console.Write(Terra[r, c]);
+                    Console.Write(AllTerras[nTerraID].nSlice[r, c]);
 
                 Console.WriteLine();
             }
