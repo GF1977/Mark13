@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Puzzle1
+namespace Puzzle2
 {
     class Program
     {
