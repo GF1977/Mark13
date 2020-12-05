@@ -24,18 +24,20 @@ namespace Puzzle3
                 fileInput.Add(S);
             }
 
-           
-            int nStepsRight = 3;
-            int nStepsDown  = 1;
-           
-
-            int nTreeCount = CheckSlope(fileInput, nStepsRight, nStepsDown);
-
-
-
+            // Part One
+            Int64 nTreeCount  = CheckSlope(fileInput, 3, 1);
             Console.WriteLine("--------------------------");
             Console.WriteLine("PartOne: {0}", nTreeCount);
-            Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
+
+            // Part Two
+            nTreeCount *= CheckSlope(fileInput, 1, 1);
+                nTreeCount *= CheckSlope(fileInput, 5, 1);
+                nTreeCount *= CheckSlope(fileInput, 7, 1);
+                nTreeCount *= CheckSlope(fileInput, 1, 2);
+            
+
+
+            Console.WriteLine("PartTwo: {0}", nTreeCount);
 
         }
 
@@ -46,15 +48,17 @@ namespace Puzzle3
             int nTreeCount = 0;
             int nRow = 0;
 
-            foreach (string S in fileInput)
+            for(int i = 0;i< fileInput.Count;i+= nStepsDown)
             {
-                int nXposition = (nStepsRight * nRow) % nForrestLen;
+                string S = fileInput[i];
+                int nXposition = (nStepsRight * (nRow) % nForrestLen);
                 if (S[nXposition] == '#')
                     nTreeCount++;
-
+                    
                 nRow++;
             }
-
+            // Debug
+            //Console.WriteLine("nStepsRight {0}  nStepsDown {1}    -  Trees =  {2}", nStepsRight, nStepsDown, nTreeCount);
             return nTreeCount;
         }
     }
