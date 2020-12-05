@@ -11,24 +11,39 @@ namespace Puzzle1
             Console.Clear();
             Console.WriteLine(DateTime.Now);
             StreamReader file = new StreamReader(@".\data.txt");
-            //List<string> myInput = new List<string>();
+            
             List<int> myInput = new List<int>();
-            int nN1 = 0;
-            int nN2 = 0;
+            int A = 0;
 
             while (!file.EndOfStream)
                 myInput.Add(int.Parse(file.ReadLine()));
 
 
-            foreach(int S in myInput)
-            {
-                nN1 = S;
-                nN2 = myInput.Find(n => n  == (2020 - nN1));
-                if (nN2 > 0)
-                    break;
-            }
+            bool bPartOneSolved = false;
+            bool bPartTwoSolved = false;
 
-            Console.WriteLine("Part one:  {0} * {1} = {2}", nN1, nN2, nN1 * nN2);
+            foreach (int B in myInput)
+                foreach (int C in myInput)
+                {
+                    if (bPartOneSolved && bPartTwoSolved)
+                        return;
+
+                    // Part One
+                    A = myInput.Find(n => n == (2020 - C));
+                    if (A > 0 && !bPartOneSolved)
+                    {
+                        Console.WriteLine("Part one:  {0} * {1} = {2}", A, C, A * C);
+                        bPartOneSolved = true;
+                    }
+                    // part Two
+                    A = myInput.Find(n => n == (2020 - B - C));
+                    if (A > 0)
+                    {
+                        Console.WriteLine("Part two:  {0} * {1} * {2} = {3}", A, B, C, A * B * C);
+                        bPartTwoSolved = true;
+                    }
+                }
+
         }
     }
 }
