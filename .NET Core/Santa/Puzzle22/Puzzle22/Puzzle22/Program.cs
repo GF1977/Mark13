@@ -34,11 +34,13 @@ namespace Puzzle22
             Console.WriteLine("Part One");
             Int64 nTempPosition = 0;
 
-            //while (true)
+
+            //for(int i=0;i<20;i++)
             {
                 foreach (string line in commands)
                 {
                     string[] words = line.Split(' ');
+                    //for (int i = 0; i < 20; i++)
                     switch (words[0])
                     {
                         case "deal":
@@ -54,21 +56,20 @@ namespace Puzzle22
 
 
                     nCardPosition = cards.FindIndex(n => n == nCardValue);
-                    Console.WriteLine("Card {0} is on position {1}", nCardValue, nCardPosition);
+                   // Console.WriteLine("Card {0} is on position {1}", nCardValue, nCardPosition);
 
                 }
                 nCardPosition = cards.FindIndex(n => n == nCardValue);
                 Console.WriteLine("-------------------------------------------");
 
-                if (nCardPosition == 1867 && N >0)
-                {
-                    Console.WriteLine("-----------------  N = {0} --------------------------", N);
-                    //break;
-                }
-                N++;
                
-                //Console.WriteLine("Card {0} is on position {1}", nCardValue, nCardPosition);
+                Console.WriteLine("Card {0} is on position {1}", nCardValue, nCardPosition);
+                Console.WriteLine("Card {0} is on position 2020", cards[2020]);
             }
+
+
+            //return;
+
             // PART #2
             // Reverse order
             Console.WriteLine();
@@ -81,40 +82,40 @@ namespace Puzzle22
 
             Int64 nTempCard = 0;
 
-            while (N< nIterations)
-            {
-                for (int i = commands.Count - 1; i >= 0; i--)
-                {
-                    //Console.WriteLine("Checking position {0}", nCardPosition);
-                    string line = commands[i];
-                    string[] words = line.Split(' ');
-                    switch (words[0])
-                    {
-                        case "deal":
-                            if (words[1] == "with")
-                                nCardPosition = DealWithIncrementalReverse(nCardPosition, int.Parse(words[3]));
-                            else
-                                nCardPosition = NewStackReverse(nCardPosition);
-                            break;
-                        case "cut":
-                            nCardPosition = CutReverse(nCardPosition, int.Parse(words[1]));
-                            break;
-                    }
-                }
-                N++;
+            //while (N< nIterations)
+            //{
+            //    for (int i = commands.Count - 1; i >= 0; i--)
+            //    {
+            //        //Console.WriteLine("Checking position {0}", nCardPosition);
+            //        string line = commands[i];
+            //        string[] words = line.Split(' ');
+            //        switch (words[0])
+            //        {
+            //            case "deal":
+            //                if (words[1] == "with")
+            //                    nCardPosition = DealWithIncrementalReverse(nCardPosition, int.Parse(words[3]));
+            //                else
+            //                    nCardPosition = NewStackReverse(nCardPosition);
+            //                break;
+            //            case "cut":
+            //                nCardPosition = CutReverse(nCardPosition, int.Parse(words[1]));
+            //                break;
+            //        }
+            //    }
+            //    N++;
 
 
-                //if (nCardPosition == nTempPosition)
-                {
-                    //Console.WriteLine("-----------------  N = {0} --------------------------", N);
-                    //break;
-                }
+            //    //if (nCardPosition == nTempPosition)
+            //    {
+            //        //Console.WriteLine("-----------------  N = {0} --------------------------", N);
+            //        //break;
+            //    }
 
-                //if (nTempPosition == 2020)
-                //  nTempPosition = nCardPosition;
-                Console.WriteLine("On position {0} is Card {1}", 2020, nCardPosition);
+            //    //if (nTempPosition == 2020)
+            //    //  nTempPosition = nCardPosition;
+            //    Console.WriteLine("On position {0} is Card {1}", 2020, nCardPosition);
 
-            }
+            //}
             Console.WriteLine("On position {0} is Card {1}", nTempPosition, nCardPosition);
         }
 

@@ -32,8 +32,6 @@ namespace Puzzle20
             public Dictionary<string, int> Connection;
             public bool[] bExplored;
             public char cValue;
-            public char cValueBackup;
-            public bool bOpened;
             private int nRouteCost;
             private int nClosestID;
             public bool bVisited;
@@ -47,12 +45,16 @@ namespace Puzzle20
                 this.Y = N.Y;
                 this.bExplored = N.bExplored;
                 this.cValue = N.cValue;
-                this.bOpened = N.bOpened;
+ 
                 this.nRouteCost = N.nRouteCost;
                 this.nClosestID = N.nClosestID;
                 this.bVisited = N.bVisited;
                 this.sGate = N.sGate;
                 Connection = new Dictionary<string, int>();
+
+                foreach (KeyValuePair<string, int> Connection in N.Connection)
+                    this.Connection.Add(Connection.Key,Connection.Value);
+
             }
 
 
@@ -80,10 +82,6 @@ namespace Puzzle20
                 this.cValue = cValue;
                 Connection = new Dictionary<string, int>();
 
-                if (cValue >= 65 && cValue <= 90)
-                    bOpened = false;
-                else
-                    bOpened = true;
             }
 
             public Node Clone()
@@ -120,52 +118,6 @@ namespace Puzzle20
                 return this.bVisited;
             }
 
-            public void OpenDoor()
-            {
-                this.bOpened = true;
-            }
-
-            public bool IsKey()
-            {
-                if (this.cValue >= 97 && this.cValue <= 122)
-                    return true;
-                else
-                    return false;
-            }
-
-            public bool IsDoor()
-            {
-                if (this.cValue >= 65 && this.cValue <= 90)
-                    return true;
-                else
-                    return false;
-            }
-
-
-
-            public char PickKey()
-            {
-                char cKey = '.';
-                if (this.IsKey())
-                {
-                    cKey = this.cValue;
-                    this.cValue = '@';
-                    this.cValueBackup = cKey;
-
-                }
-                return cKey;
-            }
-
-
-            public bool IsTunnel()
-            {
-                if (this.cValue == '@' || (this.cValue >= 97 && this.cValue <= 122) || (this.cValue >= 65 && this.cValue <= 90))
-                    return false;
-                else
-                    return true;
-            }
-
-
             public bool IsInner()
             {
                 bool bRes = false;
@@ -174,7 +126,6 @@ namespace Puzzle20
 
                 return bRes;
             }
-
 
         }
 
@@ -206,7 +157,10 @@ namespace Puzzle20
             LabirintPrefill(myInput);
 
             //creating copies of Nodes.
-            int nMaxLevel = 5;
+
+
+
+            int nMaxLevel = 15;
             for (int i = 0; i <= nMaxLevel; i++)
             {
                 foreach (Node N in NodesVanila)
@@ -215,76 +169,58 @@ namespace Puzzle20
 
                     X.nLevel = i;
                     X.nID = i * 10000 + N.nID;
-
-
                     Dictionary<string, int> newConnection = new Dictionary<string, int>();
                     foreach (KeyValuePair<string, int> Connection in N.Connection)
                     {
                         string sKey = Connection.Key;
-                        int nValue = i * 10000 + Connection.Value;
+                        int nValue = Connection.Value;
+
+                        if (Connection.Key.Length == 1) // 1 means it is a teleport
+                        {
+                            if (X.IsInner())
+                                nValue = (i + 1) * 10000 + Connection.Value;
+                            else if (!X.IsInner() && X.nLevel != 0)
+                                nValue = (i - 1) * 10000 + Connection.Value;
+                            else
+                                nValue = 0; // outer gate on the0 level
+                        }
+                        else
+                        {
+                            sKey = Connection.Key;
+                            nValue = Connection.Value + 10000 * X.nLevel;
+                        }
 
                         X.Connection.Remove(sKey);
                         newConnection.Add(sKey, nValue);
+
                     }
 
-                    if (i < nMaxLevel  || !X.IsInner())
+                    if (i < nMaxLevel || !X.IsInner())
                         foreach (KeyValuePair<string, int> Connection in newConnection)
                             X.Connection.Add(Connection.Key, Connection.Value);
 
-
-                    if (i == 0 || (X.sGate != "AA" && X.sGate != "ZZ"))
-                        Nodes.Add(X);
+                    Nodes.Add(X);
                 }
             }
 
 
-            foreach (Node N in Nodes)
-            {
-                if (!N.IsTunnel() && N.sGate != "ZZ" && N.sGate != "AA")
-                {
-                    int nCurrentGate = Nodes.Find(n => n.sGate == N.sGate && n.nID != N.nID && n.nLevel == N.nLevel).nID;
-                    int nOtherLevelGate = 0;
-
-                    if (N.IsInner())
-                        nOtherLevelGate = N.nID + 10000;
-
-                    if (!N.IsInner() && N.nLevel > 0)
-                        nOtherLevelGate = N.nID - 10000;
-
-
-                    string sKey = "";
-                    foreach (KeyValuePair<string, int> Connection in N.Connection)
-                    {
-                        if (Connection.Value == nCurrentGate)
-                            sKey = Connection.Key;
-                    }
-
-                    if (sKey != "")
-                    {
-                        N.Connection.Remove(sKey);
-                        N.Connection.Add(sKey, nOtherLevelGate);
-                    }
-                }
-            }
 
 
             //foreach (Node N in Nodes)
             //{
-            //    if (N.nLevel == 8 && !N.IsTunnel())//(N.sGate == "FD")
+            //    Console.WriteLine("Node {0} id {1} connected to:", N.sGate, N.nID);
+            //    foreach (KeyValuePair<string, int> Connection in N.Connection)
             //    {
-            //        //Console.WriteLine("{0} ID = {1}", N.sGate, N.nID);
-            //        Console.WriteLine("{0} ID = {1}", N.sGate, N.nID);
-            //        foreach (KeyValuePair<string, int> Connection in N.Connection)
-            //        {
-            //            Console.WriteLine("Connection {0} ID = {1}", Connection.Key, Connection.Value);
-            //        }
+            //        string sGate = Nodes.Find(n => n.nID == Connection.Value).sGate;
+            //        Console.WriteLine("- {0} id {1}", sGate, Connection.Value);
             //    }
+            //    Console.WriteLine();
             //}
 
 
 
             //foreach (Node N in NodesVanila)
-            //    Nodes.Add(N);
+            //Nodes.Add(N);
 
             Node nStart  = NodesVanila.Find(n => n.sGate == "AA");
             Node nFinish = NodesVanila.Find(n => n.sGate == "ZZ");
@@ -294,11 +230,11 @@ namespace Puzzle20
             Console.WriteLine(NodesResult[0].GetRouteCost().ToString());
 
 
-            //foreach (Node N in Nodes)
-            //{
-            //    if (N.IsInner() && !N.IsTunnel())
-            //        Console.WriteLine("Name {0},  X={1} ; Y={2} ", N.sGate, N.X, N.Y);
-            //}
+            foreach (Node N in NodesResult)
+            {
+                if(N.cValue == 'G' && Nodes[N.GetClosestID() % 100].cValue == 'G')
+                 Console.WriteLine("Walk from {0} to {1} ({2} steps)", N.sGate, Nodes[N.GetClosestID()%100].sGate,N.GetRouteCost());
+            }
 
         }
 
@@ -492,7 +428,7 @@ namespace Puzzle20
             }
 
             // if this is a Gate
-            if (C.cValue == 'G' && C.sGate != "AA" && C.sGate != "ZZ")
+            if (C.cValue == 'G' && C.sGate != "AA" && C.sGate != "ZZ" && C.Connection.Count > 0)
             {
                 string cDirToGate = "";
                 char cDirection = C.Connection.Last().Key.First();
@@ -562,16 +498,19 @@ namespace Puzzle20
                     }
                 Start.Visited(true);
                 NextNodes.RemoveAt(0);
+                NextNodes.Sort((x,y)=>x.nLevel.CompareTo(y.nLevel));
+
             }
 
 
-            Node Temp = End;
-            while (!(Temp is null))
+            Node Temp = Start;
+            while (Temp.sGate != "AA")
             {
                 Res.Add(Temp);
                 // if (Temp.cValue == '@') break;
                 Temp = Nodes.Find(n => n.nID == Temp.GetClosestID());
             }
+            Res.Add(Temp);
 
             return Res;
         }
