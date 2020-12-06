@@ -17,29 +17,44 @@ namespace Puzzle5
         var vPartTwoAnswer = "";
 
         List<string> BoardPass = new List<string>();
+        List<int> ListSitId = new List<int>();
 
-        while (!file.EndOfStream)
+            while (!file.EndOfStream)
         {
             string S = file.ReadLine();
                 BoardPass.Add(S);
         }
 
-        int nMaxTicketId = 0;
+        int nMaxSitId = 0;
         foreach(string S in BoardPass)
             {
-                int nTicketId = GetTicketId(S);
-                if (nTicketId > nMaxTicketId)
-                    nMaxTicketId = nTicketId;
+                int nSitId = GetSitId(S);
+                if (nSitId > nMaxSitId)
+                    nMaxSitId = nSitId;
+                
+                ListSitId.Add(nSitId);
             }
 
 
+        ListSitId.Sort();
+
+            int nMySitId = 0;
+            for(int i = 1; i < ListSitId.Count; i++)
+            {
+                if (ListSitId[i - 1] + 2 == ListSitId[i])
+                    nMySitId = ListSitId[i] - 1;
+            }
+
+
+
+
         Console.WriteLine("--------------------------");
-        Console.WriteLine("PartOne: {0}", nMaxTicketId);
-        Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
+        Console.WriteLine("PartOne: {0}", nMaxSitId);
+        Console.WriteLine("PartTwo: {0}", nMySitId);
 
     }
 
-        public static int GetTicketId(string sBoardPass)
+        public static int GetSitId(string sBoardPass)
         {
 
             int nRow = 0;
