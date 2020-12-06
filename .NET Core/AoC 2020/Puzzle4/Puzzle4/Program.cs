@@ -5,23 +5,22 @@ using System.Linq;
 
 namespace Puzzle4
 {
-    class Program
+    internal class Program
 {
 
     public class Passport
     {
-            string byr;    // byr(Birth Year)
-            string iyr;    // iyr(Issue Year)
-            string eyr;    // eyr(Expiration Year)
-            string hgt; // hgt(Height)
-            string hcl; // hcl(Hair Color)
-            string ecl; // ecl(Eye Color)
-            string pid; // pid(Passport ID)
-            string cid; // cid(Country ID)
+            private string byr;    // byr(Birth Year)
+            private string iyr;    // iyr(Issue Year)
+            private string eyr;    // eyr(Expiration Year)
+            private string hgt; // hgt(Height)
+            private string hcl; // hcl(Hair Color)
+            private string ecl; // ecl(Eye Color)
+            private string pid; // pid(Passport ID)
+            private string cid; // cid(Country ID)
 
-            Int64 nFields;
-
-            bool bValid;
+            private Int64 nFields;
+            private bool  bValid;
 
             public Passport(string sRawData)
             {
@@ -30,45 +29,46 @@ namespace Puzzle4
 
                 for (int i=1; i< sArray.Length; i++)
                 {
-                    switch (sArray[i].Substring(0,3))
+                    string[] sKeyValue = sArray[i].Split(":");
+                    switch (sKeyValue[0])
                     {
                         case "byr":
-                            byr = sArray[i].Substring(4);
+                            byr = sKeyValue[1];
                             nFields += 1;
                             break;
 
                         case "iyr":
-                            iyr = sArray[i].Substring(4);
+                            iyr = sKeyValue[1];
                             nFields += 10;
                             break;
 
                         case "eyr":
-                            eyr = sArray[i].Substring(4);
+                            eyr = sKeyValue[1];
                             nFields += 100;
                             break;
 
                         case "hgt":
-                            hgt = sArray[i].Substring(4);
+                            hgt = sKeyValue[1];
                             nFields += 1000;
                             break;
 
                         case "hcl":
-                            hcl = sArray[i].Substring(4);
+                            hcl = sKeyValue[1];
                             nFields += 10000;
                             break;
 
                         case "ecl":
-                            ecl = sArray[i].Substring(4);
+                            ecl = sKeyValue[1];
                             nFields += 100000;
                             break;
 
                         case "pid":
-                            pid = sArray[i].Substring(4);
+                            pid = sKeyValue[1];
                             nFields += 1000000;
                             break;
 
                         case "cid":
-                            cid = sArray[i].Substring(4);
+                            cid = sKeyValue[1];
                             nFields += 10000000;
                             break;
 
@@ -79,27 +79,184 @@ namespace Puzzle4
 
                 }
 
-                if (nFields == 11111111 || nFields == 1111111)
-                    bValid = true;
-                else
-                    bValid = false;
+                bValid = PassValidation();
             }
+
+
+            public bool BasicValidation()
+            {
+                // main check
+                if (nFields == 11111111 || nFields == 1111111)
+                    return true;
+                else
+                    return false;
+            }
+
+            private bool PassValidation()
+            {
+                bool bResult = false;
+
+                if (BasicValidation()) bResult = true;
+                else return false;
+
+                // byr (Birth Year) - four digits; at least 1920 and at most 2002.
+                if (IsYearValid(byr, 1920, 2002)) bResult = true;
+                else return false;
+
+                // iyr (Issue Year) - four digits; at least 2010 and at most 2020.
+                if (IsYearValid(iyr, 2010, 2020)) bResult = true;
+                else return false;
+
+                // eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
+                if (IsYearValid(eyr, 2020, 2030)) bResult = true;
+                else return false;
+
+                // hgt (Height) - a number followed by either cm or in:
+                // If cm, the number must be at least 150 and at most 193.
+                // If in, the number must be at least 59 and at most 76.
+                if (IsHeightValid(hgt)) bResult = true;
+                else return false;
+
+                // hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
+                if (IsColorValid(hcl)) bResult = true;
+                else return false;
+
+                // ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
+                if (IsEyeColorValid(ecl)) bResult = true;
+                else return false;
+
+                // pid (Passport ID) - a nine-digit number, including leading zeroes.
+                if (IsPIDvalid(pid)) bResult = true;
+                else return false;
+
+                return bResult;
+
+            }
+
+            private bool IsPIDvalid(string sPID)
+            {
+                if (sPID.Length != 9)
+                    return false;
+
+                try
+                {
+                    int intValue = Convert.ToInt32(sPID);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+            }
+
+            private bool IsEyeColorValid(string ecl)
+            {
+                List<string> ValidColors = new List<string>();
+                ValidColors.Add("amb");
+                ValidColors.Add("blu");
+                ValidColors.Add("brn");
+                ValidColors.Add("gry");
+                ValidColors.Add("grn");
+                ValidColors.Add("hzl");
+                ValidColors.Add("oth");
+
+
+                if (ValidColors.Find(n => n == ecl) != null)
+                    return true;
+                else
+                    return false;
+            }
+
+            private bool IsColorValid(string sColor)
+            {
+                if (sColor.Length != 7)
+                    return false;
+
+                try
+                {
+                    sColor = sColor.Replace("#", "0x");
+                    int intValue = Convert.ToInt32(sColor, 16);
+
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+
+
+            }
+
+            private bool IsHeightValid(string sHgt)
+            {
+                int nHgt;
+                int nPosition;
+                int nHgtMin;
+                int nHgtMax;
+
+                if (sHgt.ToLower().IndexOf("in") >= 0)
+                {
+                    nPosition = sHgt.ToLower().IndexOf("in");
+                    nHgtMin = 59;
+                    nHgtMax = 76;                }
+                else
+                {
+                    nPosition = sHgt.ToLower().IndexOf("cm");
+                    nHgtMin = 150;
+                    nHgtMax = 193;
+                }
+
+                try
+                {
+                    nHgt = int.Parse(sHgt.Substring(0,nPosition));
+
+                    if (nHgt >= nHgtMin && nHgt <= nHgtMax)
+                            return true;
+                        else
+                            return false;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            private bool IsYearValid(string sYear, int nYearMin, int nYearMax)
+            {
+                int nByr;
+                try
+                {
+                    nByr = int.Parse(sYear);
+                    if (nByr >= nYearMin && nByr <= nYearMax)
+                        return  true;
+                    else
+                        return false;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
 
             public bool IsPassportValid()
             {
                 return bValid;
             }
+
+
     }
 
-
-    static void Main(string[] args)
+        private static void Main(string[] args)
     {
         Console.Clear();
         Console.WriteLine(DateTime.Now);
         StreamReader file = new StreamReader(@".\data.txt");
 
-        var nValidPassports = 0;
-        var vPartTwoAnswer = "";
+        var nValidPassportsBasic = 0;
+        var nValidPassportsStrong = 0;
 
         List<Passport> PassList = new List<Passport>();
 
@@ -118,14 +275,21 @@ namespace Puzzle4
         if (S != "")
                 PassList.Add(new Passport(S));
 
+
             foreach (Passport P in PassList)
-                if (P.IsPassportValid()) nValidPassports++;
+            {
+                // Part ONE BasicValidation
+                if (P.BasicValidation()) nValidPassportsBasic++;
+
+                // Part TWO
+                if (P.IsPassportValid()) nValidPassportsStrong++;
+            }
 
 
 
         Console.WriteLine("--------------------------");
-        Console.WriteLine("PartOne: {0}", nValidPassports);
-        Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
+        Console.WriteLine("PartOne: {0}", nValidPassportsBasic);
+        Console.WriteLine("PartTwo: {0}", nValidPassportsStrong);
 
     }
 }
