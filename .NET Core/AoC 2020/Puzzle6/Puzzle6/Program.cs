@@ -34,21 +34,37 @@ namespace Puzzle6
             if (S != "")
                 fileInput.Add(S);
 
-            int nYesAnswers = 0;
-            foreach(string sAnswer in fileInput)
+            int nYesAnsweredByAnyone = 0;
+            int nYesAnsweredByEveryone = 0;
+            foreach (string sAnswer in fileInput)
             {
-                nYesAnswers += QuestionsAnsweredYes(sAnswer);
+                nYesAnsweredByAnyone    += AnyoneAnsweredYes(sAnswer);
+                nYesAnsweredByEveryone  += EveryoneAnsweredYes(sAnswer);
             }
 
         Console.WriteLine("--------------------------");
-        Console.WriteLine("PartOne: {0}", nYesAnswers);
-        Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
+        Console.WriteLine("PartOne: {0}", nYesAnsweredByAnyone);
+        Console.WriteLine("PartTwo: {0}", nYesAnsweredByEveryone);
 
     }
-        public static int QuestionsAnsweredYes(string S)
+        public static int AnyoneAnsweredYes(string S)
         {
             return S.ToLower().ToCharArray().Where(c => c <= 'z' && c >= 'a').Distinct().Count();
         }
-    
-}
+
+
+        public static int EveryoneAnsweredYes(string S)
+        {
+            int nResult = 0;
+            int nPassengers = S.Count(n => n == ' ');
+            S = S.ToLower();
+
+            for (char c = 'a'; c <= 'z'; c++)
+                if (S.Count(n => n == c) == nPassengers)
+                    nResult++;
+
+            return nResult;
+        }
+
+    }
 }
