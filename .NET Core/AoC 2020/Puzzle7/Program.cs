@@ -96,12 +96,6 @@ namespace Puzzle7
             Console.WriteLine("--------------------------");
             Console.WriteLine("PartOne: {0}", PoliciesResults.Count);
 
-            // Part two
-            PoliciesResults = new List<BagsPolicy>();
-            var vPartTwoAnswer = ContainBag(sBag);
-
-            Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
-
             // Part two (recursive)
             var vPartTwoAnswer2 = ContainBagRecursive(sBag);
 
@@ -124,80 +118,27 @@ namespace Puzzle7
         
         public static int ContainBagRecursive(string sColor)
         {
-            int nRes = 0;
-
             BagsPolicy MainBag = Policies.Find(n => n.MainBagsColor == sColor);
 
-            while (nRes< MainBag.ChildBags.Count)
+            int i = 0;
+            while (i< MainBag.ChildBags.Count)
             {
-
-                if (MainBag.ChildBags.Count > 0)
-                {
-                    BagsPolicy FirstChild = Policies.Find(n => n.MainBagsColor == MainBag.ChildBags[nRes].MainBagsColor);
-                    int nFirstChildQuantity = MainBag.ChildBags[nRes].quantity;
+                    BagsPolicy FirstChild = Policies.Find(n => n.MainBagsColor == MainBag.ChildBags[i].MainBagsColor);
+                    int nFirstChildQuantity = MainBag.ChildBags[i].quantity;
                     foreach (BagsPolicy InnerBag in FirstChild.ChildBags)
                     {
                         BagsPolicy BP = new BagsPolicy(InnerBag);
                         BP.quantity *= nFirstChildQuantity;
                         MainBag.ChildBags.Add(BP);
                     }
-                    //MainBag.ChildBags.RemoveAt(0);
-                    nRes++;
-                }
-                else
-                    break;
-
+                    i++;
             }
 
-
-            nRes = 0;
-
+            int nRes = 0;
             foreach (BagsPolicy BP in MainBag.ChildBags)
                 nRes += BP.quantity;
 
             return nRes;
         }
-
-        public static int ContainBag(string sColor)
-        {
-            int nRes = 0;
-            int i = 0;
-            BagsPolicy MainBag = Policies.Find(n => n.MainBagsColor == sColor);
-
-            do
-            {
-                if (MainBag.ChildBags.Count == 0)
-                    i++;
-
-                else
-                {
-                    foreach (BagsPolicy Child in MainBag.ChildBags)
-                    {
-                        int nCount = Child.quantity * MainBag.quantity;
-
-                        BagsPolicy TempBag = new BagsPolicy(Policies.Find(n => n.MainBagsColor == Child.MainBagsColor));
-                        TempBag.quantity = nCount;
-                        PoliciesResults.Add(TempBag);
-                    }
-
-                    sColor = PoliciesResults[i].MainBagsColor;
-                    MainBag = PoliciesResults[i];
-                    PoliciesResults.RemoveAt(i);
-
-                    if (MainBag.ChildBags.Count != 0)
-                        nRes += MainBag.quantity;
-                }
-            }
-            while (i <= PoliciesResults.Count);
-            
-            PoliciesResults.Add(MainBag);
-
-            foreach (BagsPolicy BP in PoliciesResults)
-                nRes += BP.quantity;
-
-            return nRes;
-        }
-
-
     }
 }
