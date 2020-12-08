@@ -9,8 +9,7 @@ namespace Puzzle7
 {
         public static List<BagsPolicy> PoliciesResults = new List<BagsPolicy>();
         public static List<BagsPolicy> Policies = new List<BagsPolicy>();
-        public static List<string> Bags = new List<string>();
-        public static int nBagsCount = 0;
+
         public class BagsPolicy
         {
             public string MainBagsColor;
@@ -18,15 +17,6 @@ namespace Puzzle7
             public bool bHasChilds;
 
             public List<BagsPolicy> ChildBags = new List<BagsPolicy>();
-
-            public bool ContainBag(string sColor)
-            {
-                foreach (BagsPolicy Child in ChildBags)
-                    if (Child.MainBagsColor == sColor)
-                        return true;
-
-                return false;
-            }
 
             public BagsPolicy()
             {
@@ -40,8 +30,40 @@ namespace Puzzle7
                 quantity = Source.quantity;
                 bHasChilds = Source.bHasChilds;
                 
-                    foreach (BagsPolicy Child in Source.ChildBags)
+               foreach (BagsPolicy Child in Source.ChildBags)
                     ChildBags.Add(Child);
+            }
+
+
+            public BagsPolicy(string S)
+            {
+                string[] sParsedPolicy;
+                if (S.Contains("contain no other"))
+                {
+                    sParsedPolicy = S.Split(' ');
+                    MainBagsColor = sParsedPolicy[0] + " " + sParsedPolicy[1];
+                    bHasChilds = false;
+                }
+                else
+                {
+                    sParsedPolicy = S.Split(" bags contain ");
+                    MainBagsColor = sParsedPolicy[0];
+
+                    sParsedPolicy = sParsedPolicy[1].Split(", ");
+
+                    bHasChilds = true;
+                    foreach (string sChild in sParsedPolicy)
+                    {
+                        BagsPolicy BPchild = new BagsPolicy();
+                        string[] sChildDetails = sChild.Split(' ');
+                        BPchild.MainBagsColor = sChildDetails[1] + " " + sChildDetails[2];
+                        BPchild.quantity = int.Parse(sChildDetails[0]);
+
+                        ChildBags.Add(BPchild);
+                    }
+                }
+                quantity = 1;
+                
             }
         }
 
@@ -53,36 +75,9 @@ namespace Puzzle7
 
         while (!file.EndOfStream)
         {
-                BagsPolicy BP = new BagsPolicy();
-                
 
                 string S = file.ReadLine();
-                string[] sParsedPolicy;
-                if (S.Contains("contain no other"))
-                {
-                    sParsedPolicy = S.Split(' ');
-                    BP.MainBagsColor = sParsedPolicy[0] + " " + sParsedPolicy[1];
-                    BP.bHasChilds = false;
-                }
-                else
-                {
-                    sParsedPolicy = S.Split(" bags contain ");
-                    BP.MainBagsColor = sParsedPolicy[0];
-
-                    sParsedPolicy = sParsedPolicy[1].Split(", ");
-
-                    BP.bHasChilds = true;
-                    foreach (string sChild in sParsedPolicy)
-                    {
-                        BagsPolicy BPchild = new BagsPolicy();
-                        string[] sChildDetails = sChild.Split(' ');
-                        BPchild.MainBagsColor = sChildDetails[1] + " " + sChildDetails[2];
-                        BPchild.quantity = int.Parse(sChildDetails[0]);
-
-                        BP.ChildBags.Add(BPchild);
-                    }
-                }
-                BP.quantity = 1;
+                BagsPolicy BP = new BagsPolicy(S);
                 Policies.Add(BP);
 
             }
