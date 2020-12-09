@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace Puzzle8
 {
+   
     class Program
 {
 
@@ -14,7 +15,7 @@ namespace Puzzle8
         Console.WriteLine(DateTime.Now);
         StreamReader file = new StreamReader(@".\data.txt");
 
-        int vPartOneAnswer;
+        int vPartOneAnswer = 0;
         var vPartTwoAnswer = "";
 
         AOC2020 Mark1 = new AOC2020();
@@ -22,17 +23,25 @@ namespace Puzzle8
         while (!file.EndOfStream)
         {
             string S = file.ReadLine();
-                Mark1.AddCommand(S);
+            Mark1.AddCommand(S);
         }
 
-
-            vPartOneAnswer = Mark1.Execute();
-
+            int nPosition = 0;
+            AOC2020 Mark2 = new AOC2020(Mark1);
+            while (true) 
+            {
+                vPartOneAnswer = Mark2.Execute();
+                if (Mark2.RunStatus())
+                    break;
+                Mark2 = new AOC2020(Mark1);
+                nPosition = Mark2.FixJumpOrNop(nPosition);
+            }
+            
 
 
         Console.WriteLine("--------------------------");
         Console.WriteLine("PartOne: {0}", vPartOneAnswer);
-        Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
+
 
     }
 }
@@ -41,30 +50,67 @@ namespace Puzzle8
 
 public class AOC2020
 {
+    public static bool DEBUG_ENABLED = false;
     //public Tuple<string, int> Command;
     private class Instruction
     {
         public int ID;
-        public string   Command;
-        public int      Argument ;
+        public string Command;
+        public int Argument;
         public int ExecutionCount;
-       
+
+        public Instruction() { }
+        public Instruction(Instruction Instr) 
+        {
+            ID = Instr.ID;
+            Command = Instr.Command;
+            Argument = Instr.Argument;
+            ExecutionCount = Instr.ExecutionCount;
+        }
     }
 
+
+    private int LastExecutedCommandID { get; set; }
     private int Acc { get; set; }
     private int CommandCount { get; set; }
     private int ExecutionPosition { get; set; }
+    private bool SuccessfullRun { get; set; }
 
     private List<Instruction> ExecutionQueue = new List<Instruction>();
 
     public AOC2020() 
     {
-        Acc = 0;
-        ExecutionPosition = 0;
-        CommandCount = 0;
+        Reset();
+    }
+
+    public AOC2020(AOC2020 Instance)
+    {
+        Acc = Instance.Acc;
+        ExecutionPosition = Instance.ExecutionPosition;
+        CommandCount = Instance.CommandCount;
+        SuccessfullRun = Instance.SuccessfullRun;
+
+        foreach (Instruction Instr in Instance.ExecutionQueue)
+        {
+            Instruction NewInstr = new Instruction(Instr);
+            ExecutionQueue.Add(NewInstr);
+        }
+
     }
 
 
+    public void Reset()
+    {
+        Acc = 0;
+        ExecutionPosition = 0;
+        CommandCount = 0;
+        SuccessfullRun = false;
+    }
+
+    public bool RunStatus()
+    {
+        return SuccessfullRun;
+    }
 
     public void AddCommand(string S)
     {
@@ -110,9 +156,10 @@ public class AOC2020
                 default:
                     break;
             }
+            LastExecutedCommandID = Instr.ID;
         }
 
-
+        SuccessfullRun = true;
         return Acc;
     }
 
@@ -120,9 +167,44 @@ public class AOC2020
     {
         // Part one - the program would run an instruction a second time
         if (Instr.ExecutionCount >= 2)
+        {
+            DebugInfo(Instr);
             return true;
+        }
         else
             return false;
     }
 
+    public int FixJumpOrNop(int nPosition)
+    {
+        int NextPosition = 0;
+
+        for (int i = nPosition; i < ExecutionQueue.Count; i++)
+        {
+            if (ExecutionQueue[i].Command.ToLower() == "nop")
+            {
+                ExecutionQueue[i].Command = "jmp";
+                NextPosition = i + 1;
+                break;
+            }
+            if (ExecutionQueue[i].Command.ToLower() == "jmp")
+            {
+                ExecutionQueue[i].Command = "nop";
+                NextPosition = i + 1;
+                break;
+            }
+        }
+
+        return NextPosition;
+    }
+
+    private void DebugInfo(Instruction Instr)
+    {
+        if (DEBUG_ENABLED)
+        {
+            Console.WriteLine("Last executed command: {0}, {1}", ExecutionQueue[LastExecutedCommandID].Command, ExecutionQueue[LastExecutedCommandID].Argument);
+            Console.WriteLine("Execution Position:    {0}", ExecutionPosition);
+            Console.WriteLine("Acc:                   {0}", Acc);
+        }
+    }
 }
