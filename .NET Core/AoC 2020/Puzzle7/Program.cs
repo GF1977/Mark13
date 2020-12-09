@@ -12,9 +12,8 @@ namespace Puzzle7
 
         public class BagsPolicy
         {
-            public string MainBagsColor;
             public int quantity;
-            public bool bHasChilds;
+            public string MainBagsColor;
 
             public List<BagsPolicy> ChildBags = new List<BagsPolicy>();
 
@@ -22,13 +21,12 @@ namespace Puzzle7
             {
                 MainBagsColor = "";
                 quantity = 0;
-                bHasChilds = false;
             }
             public BagsPolicy(BagsPolicy Source)
             {
                 MainBagsColor = Source.MainBagsColor;
                 quantity = Source.quantity;
-                bHasChilds = Source.bHasChilds;
+
                 
                foreach (BagsPolicy Child in Source.ChildBags)
                     ChildBags.Add(Child);
@@ -42,7 +40,7 @@ namespace Puzzle7
                 {
                     sParsedPolicy = S.Split(' ');
                     MainBagsColor = sParsedPolicy[0] + " " + sParsedPolicy[1];
-                    bHasChilds = false;
+
                 }
                 else
                 {
@@ -50,8 +48,6 @@ namespace Puzzle7
                     MainBagsColor = sParsedPolicy[0];
 
                     sParsedPolicy = sParsedPolicy[1].Split(", ");
-
-                    bHasChilds = true;
                     foreach (string sChild in sParsedPolicy)
                     {
                         BagsPolicy BPchild = new BagsPolicy();
@@ -67,7 +63,7 @@ namespace Puzzle7
             }
         }
 
-    static void Main(string[] args)
+    static void Main()
     {
         Console.Clear();
         Console.WriteLine(DateTime.Now);
@@ -118,9 +114,9 @@ namespace Puzzle7
             int i = 0;
             while (i< MainBag.ChildBags.Count)
             {
-                    BagsPolicy FirstChild = Policies.Find(n => n.MainBagsColor == MainBag.ChildBags[i].MainBagsColor);
+                    BagsPolicy FirstChildpolicy = Policies.Find(n => n.MainBagsColor == MainBag.ChildBags[i].MainBagsColor);
                     int nFirstChildQuantity = MainBag.ChildBags[i].quantity;
-                    foreach (BagsPolicy InnerBag in FirstChild.ChildBags)
+                    foreach (BagsPolicy InnerBag in FirstChildpolicy.ChildBags)
                     {
                         BagsPolicy BP = new BagsPolicy(InnerBag);
                         BP.quantity *= nFirstChildQuantity;
