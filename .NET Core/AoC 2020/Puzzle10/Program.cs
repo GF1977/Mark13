@@ -13,11 +13,7 @@ namespace Puzzle10
         Console.Clear();
         Console.WriteLine(DateTime.Now);
 
-
-        var vPartOneAnswer = "";
         var vPartTwoAnswer = "";
-
-
 
         using (StreamReader file = new StreamReader(@".\data.txt"))
         while (!file.EndOfStream)
@@ -28,20 +24,16 @@ namespace Puzzle10
 
             Adapters.Sort();
 
-            Tuple<int,int> Res = JoltsDiff();
-
-
 
         Console.WriteLine("--------------------------");
-        Console.WriteLine("PartOne: Diff 1 Jolt = {0}    Diff 3 Jolss = {1}             Answer: {2}", Res.Item1, Res.Item2, Res.Item1 * Res.Item2);
+        Console.WriteLine("PartOne: {0}", JoltsDiff());
         Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
 
     }
 
 
-    static Tuple<int,int> JoltsDiff()
+    static int JoltsDiff()
         {
-            int nRes = 0;
             int Diff1Jolts = 1;
             int Diff3Jolts = 1;
 
@@ -51,18 +43,13 @@ namespace Puzzle10
                 if (Math.Abs(Adapters[n] - Adapters[n + 1]) == 1)
                     Diff1Jolts++;
                 else if (Math.Abs(Adapters[n] - Adapters[n + 1]) == 3)
-                {
                     Diff3Jolts++;
-                }
                 else
                     break;
-
                 n++;
             }
 
-
-            
-            return new Tuple<int,int>(Diff1Jolts,Diff3Jolts);
+            return Diff1Jolts * Diff3Jolts;
         }
 
 }
