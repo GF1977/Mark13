@@ -27,20 +27,19 @@ namespace Puzzle11
             Console.Clear();
             Console.WriteLine(DateTime.Now);
 
-            var vPartTwoAnswer = "";
-
             List<string> fileInput = new List<string>();
             fileInput = GetData();
 
             List<Action> ActionsQueue = new List<Action>();
             foreach(string S in fileInput)
             {
-                string command  = S.Substring(0, 1);
-                int value       = int.Parse(S.Substring(1, S.Length-1));
+                string command  = S[..1];
+                int value       = int.Parse(S[1..]);
                 ActionsQueue.Add(new Action(command, value));
             }
 
-            var vPartOneAnswer = ShipRun(ActionsQueue);
+            var vPartOneAnswer = ShipRun1(ActionsQueue);
+            var vPartTwoAnswer = ShipRun2(ActionsQueue);
 
             Console.WriteLine("--------------------------");
             Console.WriteLine("PartOne: {0}", vPartOneAnswer);
@@ -49,14 +48,71 @@ namespace Puzzle11
 
 
         }
+        private static object ShipRun2(List<Action> actionQueue)
+        {
+            int NS =  1; // positive = N , negative = S
+            int WE = 10; // Positive = E , negative = W
 
-        private static object ShipRun(List<Action> actionQueue)
+            long shipNS = 0; // positive = N , negative = S
+            long shipWE = 0; // Positive = E , negative = W
+
+
+            foreach (Action A in actionQueue)
+            {
+                switch (A.command)
+                {
+                    case "N": NS += A.value; break;
+                    case "S": NS -= A.value; break;
+                    case "E": WE += A.value; break;
+                    case "W": WE -= A.value; break;
+                    case "L": RotateWaypoint(NS, WE, "L", A.value, out NS, out WE); break;
+                    case "R": RotateWaypoint(NS, WE, "R", A.value, out NS, out WE); break;
+                    case "F":
+                        {
+                            shipNS += A.value * NS;
+                            shipWE += A.value * WE;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return Math.Abs(shipNS) + Math.Abs(shipWE);
+
+        }
+
+        private static void RotateWaypoint(int NS, int WE, string v, int value, out int newNS, out int newWE)
+        {
+            newWE = 0;
+            newNS = 0;
+
+            while (value > 0)
+            {
+                if (v == "R")
+                {
+                    newWE = NS;
+                    newNS = -WE;
+                }
+                if (v == "L")
+                {
+                    newWE = -NS;
+                    newNS = WE;
+                }
+                NS = newNS;
+                WE = newWE;
+                value -= 90;
+            }
+
+        }
+
+        private static object ShipRun1(List<Action> actionQueue)
         {
             int Angle = 90; // 0 = N; 90 = E;  180 = S; 270 = W;
             int NS = 0; // positive = N , negative = S
             int WE = 0; // Positive = E , negative = W
 
-            foreach(Action A in actionQueue)
+            foreach (Action A in actionQueue)
             {
                 switch (A.command)
                 {
@@ -93,12 +149,12 @@ namespace Puzzle11
             string fileName = ".\\data.txt";
             if (File.Exists(@fileName))
             {
-                using (StreamReader file = new StreamReader(@fileName))
-                    while (!file.EndOfStream)
-                    {
-                        string S = file.ReadLine();
-                        fileInput.Add(S);
-                    }
+                using StreamReader file = new StreamReader(@fileName);
+                while (!file.EndOfStream)
+                {
+                    string S = file.ReadLine();
+                    fileInput.Add(S);
+                }
             }
             else
             {
