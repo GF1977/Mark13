@@ -40,71 +40,37 @@ namespace Puzzle13
             }
 
             var vPartOneAnswer = nMinWaitTime * BusId;
-            long vPartTwoAnswer = 0;
 
-            long delta = 0;
+
+            // PART TWO
+            long delta = int.Parse(BusesSchedulesRaw[0]);
+            
+            long X = delta; // X = start timestamp, and finaly the number we are looking for
+            int busID;
             int minutes = 0;
-            int ID = 0;
-            long X = 0;
-            foreach (string S in BusesSchedulesRaw)
+
+            foreach(string S in BusesSchedulesRaw.Skip(1))
             {
-                if(delta == 0)
-                {
-                    delta = int.Parse(S);
-                    X = delta;
-                    continue;
-                }
-
-                if (S == "x")
-                {
-                    minutes++;
-                    continue;
-                }
-                else
-                    ID = int.Parse(S);
                 minutes++;
+                if (S == "x") continue;
+                busID = int.Parse(S);
 
-                int i = 0;
-                long new_X = 0;
                 while (true)
                 {
-                    if ((X + minutes) % ID == 0)
+                    if ((X + minutes) % busID == 0)
                     {
-
-                        if (i > 0)
-                        {
-
-                            delta = X - new_X;
-                            X = new_X;
-                            break;
-                        }
-                        if (i == 0)
-                        {
-                            new_X = X;
-                            i++;
-                        }
-                        //Console.WriteLine(X);
-                        //Console.ReadKey();
-                        //break;
+                        // here is the trick. as the X is huge, we have to increas delta to speed up our search
+                        delta *= busID;
+                        break;
                     }
                     X += delta;
                 }
-
-
             }
-
-
-
-
-
-            
 
             Console.WriteLine("--------------------------");
             Console.WriteLine("PartOne: {0}", vPartOneAnswer);
             Console.WriteLine("PartTwo: {0}", X);
-
         }
-
 
         static List<string> GetData()
         {
