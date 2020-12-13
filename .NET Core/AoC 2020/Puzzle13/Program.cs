@@ -69,7 +69,7 @@ namespace Puzzle13
 
             Console.WriteLine("--------------------------");
             Console.WriteLine("PartOne: {0}", vPartOneAnswer);
-            Console.WriteLine("PartTwo: {0}", X);
+            Console.WriteLine("PartTwo: {0}", X); 
         }
 
         static List<string> GetData()
