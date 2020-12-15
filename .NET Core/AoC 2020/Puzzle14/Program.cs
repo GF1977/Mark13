@@ -11,6 +11,7 @@ namespace Puzzle14
 {
 
         static public Dictionary<long, long> Cells = new Dictionary<long, long>();
+        static public Dictionary<long, long> CellsV2 = new Dictionary<long, long>();
 
         static void Main()
     {
@@ -42,8 +43,6 @@ namespace Puzzle14
                     Cells[CellAddress] = CellValue;
                 else
                     Cells.Add(CellAddress, CellValue);
-
-
             }
 
             long vPartOneAnswer = 0;
@@ -52,9 +51,35 @@ namespace Puzzle14
                 vPartOneAnswer += Cell.Value;
             }
 
+            // PART TWO
+            foreach (string S in fileInput)
+            {
+                string[] sPreParsing = S.Split(" = ");
+                if (sPreParsing[0] == "mask")
+                {
+                    sMask = sPreParsing[1];
+                    continue;
+                }
+                long CellAddress = long.Parse(sPreParsing[0].Split('[', ']')[1]);
+                long lValue = long.Parse(sPreParsing[1]);
 
-        
-        var vPartTwoAnswer = "";
+
+                List<long> FluctuatedCellAddress = new List<long>();
+                FluctuatedCellAddress = ApplyMaskV2(sMask, CellAddress);
+
+                
+                foreach(long Address in FluctuatedCellAddress)
+                if (CellsV2.ContainsKey(Address))
+                        CellsV2[Address] = lValue;
+                else
+                        CellsV2.Add(Address, lValue);
+            }
+
+            long vPartTwoAnswer = 0;
+            foreach (var Cell in CellsV2)
+                vPartTwoAnswer += Cell.Value;
+
+
 
         Console.WriteLine("--------------------------");
         Console.WriteLine("PartOne: {0}", vPartOneAnswer);
@@ -62,7 +87,56 @@ namespace Puzzle14
 
     }
 
-    static long ApplyMask(string sMask, long lValue)
+        static List<long> ApplyMaskV2(string sMask, long lValue)
+        {
+            string sV = Convert.ToString(lValue, 2);
+            StringBuilder sbValue = new StringBuilder("000000000000000000000000000000000000", 0, 36 - sV.Length, 36);
+            sbValue.Append(sV);
+            sMask = sMask.Substring(sMask.Length - sbValue.Length);
+
+
+            for (int i = 0; i < sbValue.Length; i++)
+                if (sMask[i] != '0')
+                    sbValue[i] = sMask[i];
+
+
+            string sValue = sbValue.ToString();
+            int x = sValue.Count(n => n == 'X');
+
+            
+
+            List<long> result = new List<long>();
+            int nMaxFluctuation = (int)Math.Pow(2, x);
+
+            for (int i=0; i< nMaxFluctuation; i++)
+            {
+
+                string newAddress = ReplaceXby0or1(sbValue, i, x);
+
+                long lAddress = Convert.ToInt64(newAddress, 2); ;
+                result.Add(lAddress);
+            }
+
+            return result;
+        }
+
+        static string ReplaceXby0or1(StringBuilder sbValueoriginal, int N, int x)
+        {
+            StringBuilder sbValue = new StringBuilder(sbValueoriginal.ToString());
+            string sFluctuation = "0000000000000000000000000000" + Convert.ToString(N, 2);
+            sFluctuation = sFluctuation.Substring(sFluctuation.Length - x);
+
+            int y = 0;
+            for(int i = 0; i < sbValue.Length;i++)
+                if(sbValue[i] == 'X')
+                    sbValue[i] = sFluctuation[y++];
+
+
+
+            return sbValue.ToString();
+        }
+
+        static long ApplyMask(string sMask, long lValue)
         {
             string sV = Convert.ToString(lValue, 2);
             StringBuilder sValue = new StringBuilder("000000000000000000000000000000000000", 0, 36 - sV.Length, 36);
@@ -73,6 +147,7 @@ namespace Puzzle14
             for (int i = 0; i < sValue.Length; i++)
                 if (sMask[i] != 'X')
                     sValue[i] = sMask[i];
+
 
 
 
