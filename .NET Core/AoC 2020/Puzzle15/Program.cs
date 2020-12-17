@@ -23,25 +23,21 @@ namespace Puzzle15
         foreach (string S in preParsingString)
         theQueue.Add(int.Parse(S));
 
+
         // the main cycle
-        int nEnd = 30000000 - theQueue.Count;
-            int nTheLastNumberSpoken = theQueue.Last();
+        int nEnd = 2020 - theQueue.Count;
+        int nTheLastNumberSpoken = theQueue.Last();
         while (nEnd-- > 0)
             {
                 int nNumberToSay = 0;
                 if (theQueue.Count(n=>n==nTheLastNumberSpoken)>1)
                 {
-                    List<int> nPosition = new List<int>();
+                    //List<int> nPosition = new List<int>();
                     int n = theQueue.Count(n => n == nTheLastNumberSpoken);
-                    int nIndex = 0;
-                    int i = 0;
-                    while(i++ < n)
-                    {
-                        nIndex = theQueue.FindIndex(nIndex, n => n == nTheLastNumberSpoken);
-                        nPosition.Add(nIndex);
-                        nIndex++;
-                    }
-                    nNumberToSay = nPosition[n-1] - nPosition[n-2];
+                    int nPositionA = theQueue.LastIndexOf(nTheLastNumberSpoken);
+                    int nPositionB = theQueue.LastIndexOf(nTheLastNumberSpoken, nPositionA - 1);
+
+                    nNumberToSay = nPositionA - nPositionB;
                     theQueue.Add(nNumberToSay);
                     nTheLastNumberSpoken = nNumberToSay;
                     continue;
