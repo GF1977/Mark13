@@ -19,33 +19,53 @@ namespace Puzzle15
 
         string[] preParsingString = fileInput[0].Split(",");
 
-        List<int> theQueue = new List<int>();
-        foreach (string S in preParsingString)
-        theQueue.Add(int.Parse(S));
+            List<int> theQueue = new List<int>();
+            
+            // Item1 = position A
+            // Item2 = position B
+            // Item3 = counter
+            Dictionary<long, Tuple<long, long, long>> Numbers = new Dictionary<long, Tuple<long, long, long>>();
+            
 
-
-        // the main cycle
-        int nEnd = 2020 - theQueue.Count;
-        int nTheLastNumberSpoken = theQueue.Last();
-        while (nEnd-- > 0)
+            long x = 0;
+            foreach (string S in preParsingString)
             {
-                int nNumberToSay = 0;
-                if (theQueue.Count(n=>n==nTheLastNumberSpoken)>1)
-                {
-                    //List<int> nPosition = new List<int>();
-                    int n = theQueue.Count(n => n == nTheLastNumberSpoken);
-                    int nPositionA = theQueue.LastIndexOf(nTheLastNumberSpoken);
-                    int nPositionB = theQueue.LastIndexOf(nTheLastNumberSpoken, nPositionA - 1);
+                theQueue.Add(int.Parse(S));
+                Tuple<long, long, long> PositionAndCount = new Tuple<long, long, long> ( 0 , x+1 , 1 );
+                Numbers.Add(long.Parse(S), PositionAndCount);
+                x++;
+            }
+        // the main cycle
+        
+        long nEnd = 30000000;
 
-                    nNumberToSay = nPositionA - nPositionB;
-                    theQueue.Add(nNumberToSay);
+            long nTheLastNumberSpoken = theQueue.Last();
+        while (x++ < nEnd)
+            {
+                long nNumberToSay = 0;
+                //if (theQueue.Count(n=>n==nTheLastNumberSpoken)>1)
+                Tuple<long, long, long> PositionAndCount;
+                bool bNumberWasThere = Numbers.TryGetValue(nTheLastNumberSpoken,out PositionAndCount);
+                if (bNumberWasThere && PositionAndCount.Item3  > 1)
+                {
+
+                    nNumberToSay = PositionAndCount.Item2 - PositionAndCount.Item1;
+                    if (Numbers.TryGetValue(nNumberToSay, out PositionAndCount))
+                    {
+                        Numbers.Remove(nNumberToSay);
+                        Numbers.Add(nNumberToSay, new Tuple<long, long, long>(PositionAndCount.Item2, x, PositionAndCount.Item3 + 1));
+                    }
+                    else
+                        Numbers.Add(nNumberToSay, new Tuple<long, long, long>(0, x, 1));
                     nTheLastNumberSpoken = nNumberToSay;
                     continue;
                 }
                 else
                 {
                     nNumberToSay = 0;
-                    theQueue.Add(nNumberToSay);
+                    Numbers.TryGetValue(0, out PositionAndCount);
+                    Numbers.Remove(nNumberToSay);
+                    Numbers.Add(nNumberToSay, new Tuple<long, long, long>(PositionAndCount.Item2 , x , PositionAndCount.Item3 + 1));
                     nTheLastNumberSpoken = nNumberToSay;
                     continue;
                 }
