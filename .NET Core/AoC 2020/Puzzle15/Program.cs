@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Puzzle15
+namespace MemoryGame
 {
-    class Program
+    public class Program
     {
 
         static void Main()
@@ -15,14 +15,14 @@ namespace Puzzle15
             string myInput = "19,20,14,0,9,1";
 
             var vPartOneAnswer = GetNumber(2020, myInput);
-            //var vPartTwoAnswer = GetNumber(30000000, myInput);
+            var vPartTwoAnswer = GetNumber(30000000, myInput);
 
             Console.WriteLine("--------------------------");
             Console.WriteLine("PartOne: {0}", vPartOneAnswer);
-            //Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
+            Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
         }
 
-        private static long GetNumber(long nEnd, string myInput)
+        public static long GetNumber(long nEnd, string myInput)
         {
             long x = 0;
             string[] preParsingString = myInput.Split(",");
@@ -39,34 +39,24 @@ namespace Puzzle15
             }
 
             long nTheLastNumberSpoken = Numbers.Last().Key;
+            long nNumberToSay;
             while (x++ < nEnd)
             {
-                long nNumberToSay;
                 bool bNumberWasThere = Numbers.TryGetValue(nTheLastNumberSpoken, out Tuple<long, long, long> PositionAndCount);
                 if (bNumberWasThere && PositionAndCount.Item3 > 1)
-                {
-
-                    nNumberToSay = PositionAndCount.Item2 - PositionAndCount.Item1;
-                    if (Numbers.TryGetValue(nNumberToSay, out PositionAndCount))
-                    {
-                        Numbers.Remove(nNumberToSay);
-                        Numbers.Add(nNumberToSay, new Tuple<long, long, long>(PositionAndCount.Item2, x, PositionAndCount.Item3 + 1));
-                    }
-                    else
-                        Numbers.Add(nNumberToSay, new Tuple<long, long, long>(0, x, 1));
-                    nTheLastNumberSpoken = nNumberToSay;
-                    continue;
-                }
+                   nNumberToSay = x - 1 - PositionAndCount.Item1;
                 else
-                {
                     nNumberToSay = 0;
-                    Numbers.TryGetValue(0, out PositionAndCount);
+
+                if (Numbers.TryGetValue(nNumberToSay, out PositionAndCount))
+                {
                     Numbers.Remove(nNumberToSay);
                     Numbers.Add(nNumberToSay, new Tuple<long, long, long>(PositionAndCount.Item2, x, PositionAndCount.Item3 + 1));
-                    nTheLastNumberSpoken = nNumberToSay;
-                    continue;
                 }
+                else
+                    Numbers.Add(nNumberToSay, new Tuple<long, long, long>(x, x, 1));
 
+                nTheLastNumberSpoken = nNumberToSay;
             }
 
             return nTheLastNumberSpoken;
