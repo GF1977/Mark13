@@ -62,11 +62,13 @@ namespace Puzzle16
 
             }
             //my Ticket
+            int nValueCount = 0;
             foreach (string S in fileInput.Skip(LinePosition+1))
             {
                 LinePosition++;
                 if (S == "") break;
                 string[] myTicketRaw = S.Split(",");
+                nValueCount = myTicketRaw.Length;
                 foreach (string sValue in myTicketRaw)
                     myTicket.TicketValue.Add(int.Parse(sValue));
             }
@@ -85,9 +87,11 @@ namespace Puzzle16
 
 
             // Tickets validation
+            List<Ticket> ValidNearbyTickets = new List<Ticket>();
             long vPartOneAnswer = 0;
             foreach (Ticket T in NearbyTickets)
             {
+                int nValidValuesCount = 0;
                 foreach(int nValue in T.TicketValue)
                 {
                     bool bInvalid = true;
@@ -100,18 +104,59 @@ namespace Puzzle16
                         }
                      
                     }
-                    if(bInvalid)
+                    if (bInvalid)
                         vPartOneAnswer += nValue;
-
+                    else
+                        nValidValuesCount++;
                 }
 
+                if (nValidValuesCount == T.TicketValue.Count)
+                    ValidNearbyTickets.Add(T);
+            }
+            // tickets validation end
+
+            ValidNearbyTickets.Add(myTicket);
+            // Looking for the right fields order
+            List<KeyValuePair<string,int>> PossibleRules = new List<KeyValuePair<string, int>>();
+            foreach (TicketsRules Rule in Rules)
+                for (int nValuePosition = 0; nValuePosition < nValueCount; nValuePosition++)
+                {
+                    int X = 0;
+                
+                foreach (Ticket T in ValidNearbyTickets)
+                {
+
+                        if (CheckRules(T.TicketValue[nValuePosition], Rule))
+                            X++;
+                            
+
+
+                    
+                }
+                    if (X == ValidNearbyTickets.Count)
+                        PossibleRules.Add(new KeyValuePair<string, int>(Rule.RuleName, nValuePosition));
+                }
+
+
+            long vPartTwoAnswer = 1;
+            while (PossibleRules.Count>0)
+            foreach(TicketsRules R in Rules)
+            {
+                if (PossibleRules.Count(n => n.Key.Contains(R.RuleName)) == 1)
+                {
+                   string Rule = PossibleRules.Find(n => n.Key.Contains(R.RuleName)).Key;
+                   int Value = PossibleRules.Find(n => n.Key.Contains(R.RuleName)).Value;
+                   Console.WriteLine("Field {0}  = column {1}:  MyTicket Value = {2}", Rule, Value + 1, myTicket.TicketValue[Value]);
+                        if (Rule.Contains("departure"))
+                            vPartTwoAnswer *= myTicket.TicketValue[Value];
+
+                   PossibleRules.RemoveAll(n => n.Value ==Value);
+                }
             }
 
 
-        // tickets validation end
+
             
-        
-        var vPartTwoAnswer = "";
 
         Console.WriteLine("--------------------------");
         Console.WriteLine("PartOne: {0}", vPartOneAnswer);
@@ -119,10 +164,10 @@ namespace Puzzle16
 
     }
 
-        private static bool CheckRules(int nValue, TicketsRules ticketsRules)
+        private static bool CheckRules(int nValue, TicketsRules TR)
         {
 
-            if (nValue >= ticketsRules.RuleSetOne[0] && nValue <= ticketsRules.RuleSetOne[1] || nValue >= ticketsRules.RuleSetTwo[0] && nValue <= ticketsRules.RuleSetTwo[1])
+            if (nValue >= TR.RuleSetOne[0] && nValue <= TR.RuleSetOne[1] || nValue >= TR.RuleSetTwo[0] && nValue <= TR.RuleSetTwo[1])
                 return true;
             else
                 return false;
