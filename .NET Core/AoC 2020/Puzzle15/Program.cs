@@ -1,52 +1,49 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
 
 namespace Puzzle15
 {
     class Program
-{
-
-    static void Main()
     {
-        Console.Clear();
-        Console.WriteLine(DateTime.Now);
 
-        List<string> fileInput = new List<string>();
-        fileInput = GetData();
+        static void Main()
+        {
+            Console.Clear();
+            Console.WriteLine(DateTime.Now);
 
-        string[] preParsingString = fileInput[0].Split(",");
+            string myInput = "19,20,14,0,9,1";
 
-            List<int> theQueue = new List<int>();
-            
+            var vPartOneAnswer = GetNumber(2020, myInput);
+            //var vPartTwoAnswer = GetNumber(30000000, myInput);
+
+            Console.WriteLine("--------------------------");
+            Console.WriteLine("PartOne: {0}", vPartOneAnswer);
+            //Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
+        }
+
+        private static long GetNumber(long nEnd, string myInput)
+        {
+            long x = 0;
+            string[] preParsingString = myInput.Split(",");
+
             // Item1 = position A
             // Item2 = position B
             // Item3 = counter
             Dictionary<long, Tuple<long, long, long>> Numbers = new Dictionary<long, Tuple<long, long, long>>();
-            
 
-            long x = 0;
             foreach (string S in preParsingString)
             {
-                theQueue.Add(int.Parse(S));
-                Tuple<long, long, long> PositionAndCount = new Tuple<long, long, long> ( 0 , x+1 , 1 );
-                Numbers.Add(long.Parse(S), PositionAndCount);
+                Numbers.Add(long.Parse(S), new Tuple<long, long, long>(0, x + 1, 1));
                 x++;
             }
-        // the main cycle
-        
-        long nEnd = 30000000;
 
-            long nTheLastNumberSpoken = theQueue.Last();
-        while (x++ < nEnd)
+            long nTheLastNumberSpoken = Numbers.Last().Key;
+            while (x++ < nEnd)
             {
-                long nNumberToSay = 0;
-                //if (theQueue.Count(n=>n==nTheLastNumberSpoken)>1)
-                Tuple<long, long, long> PositionAndCount;
-                bool bNumberWasThere = Numbers.TryGetValue(nTheLastNumberSpoken,out PositionAndCount);
-                if (bNumberWasThere && PositionAndCount.Item3  > 1)
+                long nNumberToSay;
+                bool bNumberWasThere = Numbers.TryGetValue(nTheLastNumberSpoken, out Tuple<long, long, long> PositionAndCount);
+                if (bNumberWasThere && PositionAndCount.Item3 > 1)
                 {
 
                     nNumberToSay = PositionAndCount.Item2 - PositionAndCount.Item1;
@@ -65,45 +62,14 @@ namespace Puzzle15
                     nNumberToSay = 0;
                     Numbers.TryGetValue(0, out PositionAndCount);
                     Numbers.Remove(nNumberToSay);
-                    Numbers.Add(nNumberToSay, new Tuple<long, long, long>(PositionAndCount.Item2 , x , PositionAndCount.Item3 + 1));
+                    Numbers.Add(nNumberToSay, new Tuple<long, long, long>(PositionAndCount.Item2, x, PositionAndCount.Item3 + 1));
                     nTheLastNumberSpoken = nNumberToSay;
                     continue;
                 }
 
             }
 
-
-        var vPartOneAnswer = nTheLastNumberSpoken;
-        var vPartTwoAnswer = "";
-
-        Console.WriteLine("--------------------------");
-        Console.WriteLine("PartOne: {0}", vPartOneAnswer);
-        Console.WriteLine("PartTwo: {0}", vPartTwoAnswer);
-
-    }
-
-
-    static List<string> GetData()
-    {
-        List<string> fileInput = new List<string>();
-        string fileName = ".\\data.txt";
-        if (File.Exists(@fileName))
-        {
-            using StreamReader file = new StreamReader(@fileName);
-            while (!file.EndOfStream)
-            {
-                string S = file.ReadLine();
-                fileInput.Add(S);
-            }
+            return nTheLastNumberSpoken;
         }
-        else
-        {
-            var myFile = File.CreateText(@fileName);
-            myFile.Close();
-            Process.Start(@"C:\Program Files\Notepad++\notepad++.exe", fileName);
-        }
-
-        return fileInput;
     }
-}
 }
